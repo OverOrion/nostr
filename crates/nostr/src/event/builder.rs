@@ -3,6 +3,12 @@
 
 //! Event builder
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+use std::vec::Vec;
+use std::string::String;
+
 use secp256k1::{Message, XOnlyPublicKey};
 use serde_json::{json, Value};
 use url::Url;

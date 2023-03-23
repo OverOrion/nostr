@@ -4,6 +4,10 @@
 
 //! Event
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+
 use std::str::FromStr;
 use std::string::String;
 use std::vec::Vec;

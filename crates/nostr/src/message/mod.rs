@@ -3,6 +3,10 @@
 
 //! Messages
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+
 pub mod client;
 pub mod relay;
 pub mod subscription;

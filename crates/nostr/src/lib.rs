@@ -24,12 +24,15 @@ extern crate sgx_tstd as std;
 #[cfg(all(not(feature = "std"), feature = "sgx"))]
 pub mod sgx_reexport_prelude {
 	pub use thiserror_sgx as thiserror;
+	pub use serde_sgx as serde;
+	pub use serde_json_sgx as serde_json;
 }
 
 use std::boxed::Box;
 
 
 #[macro_use]
+#[cfg(all(not(feature = "sgx"), feature = "std"))]
 pub extern crate serde;
 
 #[cfg(feature = "nip19")]
@@ -40,7 +43,13 @@ pub use bip39;
 pub use bitcoin;
 pub use bitcoin_hashes as hashes;
 pub use secp256k1::{self, SECP256K1};
+
+#[cfg(all(not(feature = "sgx"), feature = "std"))]
 pub use serde_json;
+
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+pub use sgx_reexport_prelude::serde_json;
+
 pub use url::{self, Url};
 
 pub mod event;

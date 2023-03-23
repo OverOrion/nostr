@@ -5,10 +5,16 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/26.md>
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+
 use std::fmt;
+use std::format;
 use std::str::FromStr;
 use std::string::String;
 use std::string::ToString;
+use std::vec;
 use std::vec::Vec;
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;

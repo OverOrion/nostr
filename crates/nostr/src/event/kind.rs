@@ -3,6 +3,10 @@
 
 //! Kind
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+
 use std::fmt;
 use std::num::ParseIntError;
 use std::str::FromStr;

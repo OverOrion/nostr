@@ -3,6 +3,10 @@
 
 //! Channel Id
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+
 use std::fmt;
 use std::string::String;
 use std::vec::Vec;

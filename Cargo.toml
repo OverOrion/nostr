@@ -18,3 +18,7 @@ rust-version = "1.64.0"
 [profile.release]
 lto = true
 codegen-units = 1
+
+[patch.'https://github.com/apache/teaclave-sgx-sdk.git']
+sgx_tstd = { version = "1.1.6", git = "https://github.com/apache/incubator-teaclave-sgx-sdk", branch = "master", optional = true}
+

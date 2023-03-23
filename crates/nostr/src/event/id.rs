@@ -3,13 +3,21 @@
 
 //! Event Id
 
+
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
 use std::fmt;
 use std::str::FromStr;
+use std::string::String;
+use std::vec;
 
 use bitcoin_hashes::hex::FromHex;
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;
 use secp256k1::XOnlyPublicKey;
+use crate::prelude::serde::Serialize;
+use crate::prelude::serde::Deserialize;
 use serde_json::{json, Value};
 
 use super::{Kind, Tag};

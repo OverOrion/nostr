@@ -3,6 +3,10 @@
 
 //! Unsigned Event
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+
 use std::string::String;
 use std::vec::Vec;
 
@@ -10,6 +14,8 @@ use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
 
 use crate::{Event, EventId, Keys, Kind, Tag, Timestamp};
+use crate::prelude::serde::Serialize;
+use crate::prelude::serde::Deserialize;
 
 /// [`UnsignedEvent`] error
 #[derive(Debug, thiserror::Error)]

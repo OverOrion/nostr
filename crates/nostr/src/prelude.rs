@@ -12,7 +12,14 @@ pub use bip39::*;
 pub use bitcoin::*;
 pub use bitcoin_hashes::*;
 pub use secp256k1::*;
+
+#[cfg(all(not(feature = "sgx"), feature = "std"))]
 pub use serde_json::*;
+
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+pub use crate::sgx_reexport_prelude::serde_json::*;
+
+
 pub use url::*;
 
 // Internal modules

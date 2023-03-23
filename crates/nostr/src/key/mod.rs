@@ -6,6 +6,10 @@
 //!
 //! This module defines the [`Keys`] structure.
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+
 #[cfg(feature = "nip19")]
 use std::str::FromStr;
 

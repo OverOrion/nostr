@@ -6,7 +6,9 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/13.md>
 
+use std::format;
 use std::string::String;
+use std::vec;
 use std::vec::Vec;
 
 /// Gets the number of leading zero bits. Result is between 0 and 255.
