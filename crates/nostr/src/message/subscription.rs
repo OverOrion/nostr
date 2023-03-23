@@ -4,6 +4,8 @@
 
 //! Subscription filters
 
+#![allow(missing_docs)]
+
 use std::fmt;
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
