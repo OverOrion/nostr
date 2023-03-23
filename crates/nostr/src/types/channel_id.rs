@@ -3,9 +3,6 @@
 
 //! Channel Id
 
-#[cfg(feature = "alloc")]
-use alloc::{string::String, vec::Vec};
-
 use std::fmt;
 
 #[cfg(feature = "nip19")]

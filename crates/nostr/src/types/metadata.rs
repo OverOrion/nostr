@@ -6,7 +6,6 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-#[cfg(feature = "alloc")]
 use alloc::string::String;
 
 /// [`Metadata`] error
