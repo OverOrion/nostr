@@ -3,9 +3,13 @@
 
 //! Kind
 
-use std::fmt;
-use std::num::ParseIntError;
-use std::str::FromStr;
+use core::num::ParseIntError;
+
+#[cfg(feature = "alloc")]
+use alloc::{fmt, str::FromStr};
+
+#[cfg(feature = "std")]
+use std::{fmt, str::FromStr};
 
 use serde::de::{Deserialize, Deserializer, Error, Visitor};
 use serde::ser::{Serialize, Serializer};
