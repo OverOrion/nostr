@@ -4,6 +4,10 @@
 
 //! Client messages
 
+use std::boxed::Box;
+use std::string::String;
+use std::vec::Vec;
+
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{json, Value};

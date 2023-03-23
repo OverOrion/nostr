@@ -4,6 +4,8 @@
 //! Channel Id
 
 use std::fmt;
+use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nip19")]
 use bech32::{self, FromBase32, ToBase32, Variant};

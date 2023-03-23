@@ -3,6 +3,8 @@
 
 //! Metadata
 
+use std::string::String;
+
 use url::Url;
 
 /// [`Metadata`] error

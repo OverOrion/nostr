@@ -7,6 +7,9 @@
 
 use std::fmt;
 use std::str::FromStr;
+use std::string::String;
+use std::string::ToString;
+use std::vec::Vec;
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;

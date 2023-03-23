@@ -3,6 +3,8 @@
 
 //! Contact
 
+use std::string::String;
+
 use secp256k1::XOnlyPublicKey;
 
 /// Contact

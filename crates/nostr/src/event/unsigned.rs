@@ -3,6 +3,9 @@
 
 //! Unsigned Event
 
+use std::string::String;
+use std::vec::Vec;
+
 use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
 

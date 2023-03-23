@@ -3,6 +3,9 @@
 
 //! Tag
 
+use std::string::String;
+use std::vec::Vec;
+
 use std::fmt;
 use std::num::ParseIntError;
 use std::str::FromStr;

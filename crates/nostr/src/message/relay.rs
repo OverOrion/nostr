@@ -4,6 +4,9 @@
 
 //! Relay messages
 
+use std::boxed::Box;
+use std::string::String;
+
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{json, Value};

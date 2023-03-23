@@ -3,6 +3,9 @@
 
 //! Profile
 
+use std::vec::Vec;
+use std::string::String;
+
 #[cfg(feature = "nip19")]
 use bech32::{self, FromBase32, ToBase32, Variant};
 use secp256k1::XOnlyPublicKey;
