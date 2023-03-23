@@ -3,6 +3,9 @@
 
 //! Tag
 
+#[cfg(feature = "alloc")]
+use alloc::{vec::Vec, string::String};
+
 use std::fmt;
 use std::num::ParseIntError;
 use std::str::FromStr;
