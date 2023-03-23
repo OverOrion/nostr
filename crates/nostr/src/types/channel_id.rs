@@ -3,7 +3,7 @@
 
 //! Channel Id
 
-use std::{fmt, str::FromStr};
+use std::fmt;
 
 #[cfg(feature = "nip19")]
 use bech32::{self, FromBase32, ToBase32, Variant};
