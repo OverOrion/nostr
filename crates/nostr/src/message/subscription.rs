@@ -4,7 +4,13 @@
 
 //! Subscription filters
 
+#![allow(missing_docs)]
+
+#[cfg(feature = "std")]
 use std::fmt;
+
+#[cfg(feature = "alloc")]
+use alloc::{fmt, string::String, vec::Vec};
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;

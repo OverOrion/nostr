@@ -1,13 +1,6 @@
 // Copyright (c) 2022-2023 Yuki Kishimoto
 // Distributed under the MIT software license
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
-#[cfg(not(feature = "debug"))]
-extern crate alloc;
-
-
-
 #![warn(missing_docs)]
 #![warn(rustdoc::bare_urls)]
 
@@ -17,6 +10,16 @@ extern crate alloc;
     feature = "default",
     doc = include_str!("../README.md")
 )]
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
+#[macro_use]
+pub extern crate serde;
 
 #[cfg(feature = "nip19")]
 pub use bech32;
@@ -42,4 +45,4 @@ pub use self::message::{ClientMessage, Filter, RelayMessage, SubscriptionId};
 pub use self::types::{ChannelId, Contact, Entity, Metadata, Profile, Timestamp};
 
 /// Result
-pub type Result<T, E = alloc::boxed::Box<dyn std::error::Error>> = std::result::Result<T, E>;
+pub type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
