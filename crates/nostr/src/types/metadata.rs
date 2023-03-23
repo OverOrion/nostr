@@ -5,6 +5,8 @@
 
 use url::Url;
 
+use alloc::string::String;
+
 /// [`Metadata`] error
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
