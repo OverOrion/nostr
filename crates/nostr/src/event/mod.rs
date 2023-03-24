@@ -4,7 +4,11 @@
 
 //! Event
 
+#[cfg(feature = "std")]
 use std::str::FromStr;
+
+#[cfg(feature = "alloc")]
+use alloc::{str::FromStr, string::String, vec::Vec};
 
 use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
