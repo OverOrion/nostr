@@ -60,9 +60,20 @@ impl EventBuilder {
     }
 
     /// Build [`Event`]
+    #[cfg(feature = "std")]
     pub fn to_event(self, keys: &Keys) -> Result<Event, Error> {
-        let pubkey: XOnlyPublicKey = keys.public_key();
         let created_at: Timestamp = Timestamp::now();
+
+        Self::to_event_internal(self, keys, created_at)
+    }
+
+    #[cfg(not(feature = "std"))]
+    pub fn to_event_with_timestamp(self, keys: &Keys, created_at: Timestamp) -> Result<Event, Error> {
+        Self::to_event_internal(self, keys, created_at)
+    }
+
+    fn to_event_internal(self, keys: &Keys, created_at: Timestamp) -> Result<Event, Error> {
+        let pubkey: XOnlyPublicKey = keys.public_key();
 
         let id = EventId::new(&pubkey, created_at, &self.kind, &self.tags, &self.content);
         let message = Message::from_slice(id.as_bytes())?;
@@ -81,7 +92,16 @@ impl EventBuilder {
     }
 
     /// Build POW [`Event`]
+    #[cfg(feature = "std")]
     pub fn to_pow_event(self, keys: &Keys, difficulty: u8) -> Result<Event, Error> {
+
+    }
+    #[cfg(feature = "std")]
+    pub fn to_pow_event_with_time_supplier(self, keys: &Keys, difficulty: u8, time_supplier: &impl TimeSupplier) -> Result<Event, Error> {
+
+    }
+
+    fn to_pow_event_internal(self, keys: &Keys, difficulty: u8, time_supplier: &impl TimeSupplier) -> Result<Event, Error> {
         #[cfg(target_arch = "wasm32")]
         use instant::Instant;
         #[cfg(all(not(target_arch = "wasm32"), feature = "std"))]
@@ -133,8 +153,19 @@ impl EventBuilder {
     }
 
     /// Build [`UnsignedEvent`]
+    #[cfg(feature = "std")]
     pub fn to_unsigned_event(self, pubkey: XOnlyPublicKey) -> UnsignedEvent {
         let created_at: Timestamp = Timestamp::now();
+
+        Self::to_unsigned_event_internal(self, pubkey, created_at)
+        
+    }
+    #[cfg(not(feature = "std"))]
+    pub fn to_unsigned_event_with_timestamp(self, pubkey: XOnlyPublicKey, created_at: Timestamp) -> UnsignedEvent {
+        Self::to_unsigned_event_internal(self, pubkey, created_at)
+    }
+
+    fn to_unsigned_event_internal(self, pubkey: XOnlyPublicKey, created_at: Timestamp) -> UnsignedEvent {
         let id = EventId::new(&pubkey, created_at, &self.kind, &self.tags, &self.content);
         UnsignedEvent {
             id,
@@ -144,6 +175,7 @@ impl EventBuilder {
             tags: self.tags,
             content: self.content,
         }
+
     }
 }
 
