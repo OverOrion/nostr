@@ -3,8 +3,12 @@
 
 //! Event Id
 
-use std::fmt;
-use std::str::FromStr;
+#[cfg(feature = "std")]
+use std::{fmt, str::FromStr};
+
+#[cfg(feature = "alloc")]
+use alloc::{fmt, str::FromStr, string::String, vec};
+
 
 use bitcoin_hashes::hex::FromHex;
 use bitcoin_hashes::sha256::Hash as Sha256Hash;

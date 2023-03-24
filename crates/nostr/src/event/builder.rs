@@ -2,6 +2,8 @@
 // Distributed under the MIT software license
 
 //! Event builder
+#[cfg(feature = "alloc")]
+use alloc::{string::String, vec::Vec};
 
 use secp256k1::{Message, XOnlyPublicKey};
 use serde_json::{json, Value};
@@ -82,8 +84,11 @@ impl EventBuilder {
     pub fn to_pow_event(self, keys: &Keys, difficulty: u8) -> Result<Event, Error> {
         #[cfg(target_arch = "wasm32")]
         use instant::Instant;
-        #[cfg(not(target_arch = "wasm32"))]
-        use std::time::Instant;
+        #[cfg(all(not(target_arch = "wasm32"), feature = "std"))]
+        use std::{cmp, time::Instant};
+
+        #[cfg(feature = "alloc")]
+        use core::cmp;
 
         let mut nonce: u128 = 0;
         let mut tags: Vec<Tag> = self.tags;
@@ -105,7 +110,7 @@ impl EventBuilder {
                     "{} iterations in {} ms. Avg rate {} hashes/second",
                     nonce,
                     now.elapsed().as_millis(),
-                    nonce * 1000 / std::cmp::max(1, now.elapsed().as_millis())
+                    nonce * 1000 / cmp::max(1, now.elapsed().as_millis())
                 );
 
                 let message = Message::from_slice(id.as_bytes())?;

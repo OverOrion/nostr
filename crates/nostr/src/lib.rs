@@ -20,6 +20,9 @@
 extern crate alloc;
 
 #[cfg(feature = "alloc")]
+extern crate thiserror_core as thiserror;
+
+#[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
 #[macro_use]
@@ -49,4 +52,7 @@ pub use self::message::{ClientMessage, Filter, RelayMessage, SubscriptionId};
 pub use self::types::{ChannelId, Contact, Entity, Metadata, Profile, Timestamp};
 
 /// Result
+#[cfg(feature = "std")]
 pub type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
+#[cfg(feature = "alloc")]
+pub type Result<T, E = Box<dyn core::error::Error>> = core::result::Result<T, E>;
