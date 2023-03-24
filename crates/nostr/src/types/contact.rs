@@ -3,12 +3,16 @@
 
 //! Contact
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
 use std::string::String;
 
 use secp256k1::XOnlyPublicKey;
 
 /// Contact
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize)]
+#[serde(crate = "self::serde")]
 pub struct Contact {
     /// Public key
     pub pk: XOnlyPublicKey,

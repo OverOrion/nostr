@@ -3,8 +3,13 @@
 
 //! Profile
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
 use std::vec::Vec;
 use std::string::String;
+use crate::serde::Deserialize;
+use crate::serde::Serialize;
 
 #[cfg(feature = "nip19")]
 use bech32::{self, FromBase32, ToBase32, Variant};
@@ -15,6 +20,7 @@ use crate::nips::nip19::{Error, FromBech32, ToBech32, PREFIX_BECH32_PROFILE, REL
 
 /// Profile
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct Profile {
     /// Public key
     pub public_key: XOnlyPublicKey,

@@ -100,6 +100,7 @@ pub fn verify_delegation_signature(
 
 /// Delegation token
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct DelegationToken(String);
 
 impl DelegationToken {

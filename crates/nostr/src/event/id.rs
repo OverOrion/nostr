@@ -16,8 +16,8 @@ use bitcoin_hashes::hex::FromHex;
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;
 use secp256k1::XOnlyPublicKey;
-use crate::prelude::serde::Serialize;
-use crate::prelude::serde::Deserialize;
+use crate::serde::Serialize;
+use crate::serde::Deserialize;
 use serde_json::{json, Value};
 
 use super::{Kind, Tag};
@@ -40,6 +40,7 @@ pub enum Error {
 ///
 /// <https://github.com/nostr-protocol/nips/blob/master/01.md>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct EventId(Sha256Hash);
 
 impl EventId {

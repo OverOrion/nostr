@@ -3,10 +3,6 @@
 
 //! Types
 
-#[cfg(all(not(feature = "std"), feature = "sgx"))]
-use crate::sgx_reexport_prelude::*;
-
-
 pub mod channel_id;
 pub mod contact;
 pub mod entity;

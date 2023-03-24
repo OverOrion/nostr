@@ -21,6 +21,7 @@ pub enum Error {
 
 /// Metadata
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct Metadata {
     /// Name
     #[serde(skip_serializing_if = "Option::is_none")]

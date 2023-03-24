@@ -28,11 +28,15 @@ pub mod sgx_reexport_prelude {
 	pub use serde_json_sgx as serde_json;
 }
 
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+#[macro_use]
+pub extern crate serde_sgx as serde;
+
 use std::boxed::Box;
 
 
-#[macro_use]
 #[cfg(all(not(feature = "sgx"), feature = "std"))]
+#[macro_use]
 pub extern crate serde;
 
 #[cfg(feature = "nip19")]

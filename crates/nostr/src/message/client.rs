@@ -14,7 +14,8 @@ use std::vec;
 use std::vec::Vec;
 
 use serde::de::Error;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::Deserialize;
+use serde::{Deserializer, Serialize, Serializer};
 use serde_json::{json, Value};
 
 use super::{Filter, MessageHandleError, SubscriptionId};

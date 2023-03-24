@@ -6,12 +6,25 @@
 use std::fmt;
 
 use std::time::Duration;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "sgx")))]
 use std::time::{SystemTime, UNIX_EPOCH};
+
 use std::{
     ops::{Add, Sub},
     str::FromStr,
 };
+
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use crate::sgx_reexport_prelude::*;
+
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use std::untrusted::time::SystemTimeEx as SystemTime;
+
+#[cfg(all(not(feature = "std"), feature = "sgx"))]
+use std::time::UNIX_EPOCH;
+
+use serde::Deserialize;
+use serde::Serialize;
 
 #[cfg(target_arch = "wasm32")]
 use instant::SystemTime;
@@ -21,12 +34,13 @@ const UNIX_EPOCH: SystemTime = SystemTime::UNIX_EPOCH;
 
 /// Unix timestamp in seconds
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct Timestamp(i64);
 
 impl Timestamp {
     /// Get UNIX timestamp
     pub fn now() -> Self {
-        let ts: u64 = SystemTime::now()
+        let ts: u64 = <SystemTime as SystemTime>::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();

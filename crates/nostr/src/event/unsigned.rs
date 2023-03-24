@@ -14,8 +14,8 @@ use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
 
 use crate::{Event, EventId, Keys, Kind, Tag, Timestamp};
-use crate::prelude::serde::Serialize;
-use crate::prelude::serde::Deserialize;
+use serde::Serialize;
+use serde::Deserialize;
 
 /// [`UnsignedEvent`] error
 #[derive(Debug, thiserror::Error)]
@@ -36,6 +36,7 @@ pub enum Error {
 
 /// [`UnsignedEvent`] struct
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct UnsignedEvent {
     /// Id
     pub id: EventId,

@@ -88,15 +88,17 @@ impl EventBuilder {
     pub fn to_pow_event(self, keys: &Keys, difficulty: u8) -> Result<Event, Error> {
         #[cfg(target_arch = "wasm32")]
         use instant::Instant;
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(all(not(target_arch = "wasm32"), not(feature = "sgx")))]
         use std::time::Instant;
+	#[cfg(all(not(feature = "std"), feature = "sgx"))]
+	use std::untrusted::time::InstantEx as Instant;
 
         let mut nonce: u128 = 0;
         let mut tags: Vec<Tag> = self.tags;
 
         let pubkey = keys.public_key();
 
-        let now = Instant::now();
+        let now = <Instant as Instant>::now();
 
         loop {
             nonce += 1;

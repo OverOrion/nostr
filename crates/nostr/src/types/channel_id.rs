@@ -40,6 +40,7 @@ pub enum Error {
 ///
 /// <https://github.com/nostr-protocol/nips/blob/master/19.md>
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct ChannelId {
     hash: Sha256Hash,
     relays: Vec<String>,

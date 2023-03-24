@@ -28,6 +28,7 @@ use serde_json::{json, Map, Value};
 use crate::{EventId, Kind, Timestamp};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct SubscriptionId(String);
 
 impl SubscriptionId {

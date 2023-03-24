@@ -7,6 +7,7 @@
 #[cfg(all(not(feature = "std"), feature = "sgx"))]
 use crate::sgx_reexport_prelude::*;
 
+use serde::Deserialize;
 
 use std::str::FromStr;
 use std::string::String;
@@ -52,6 +53,7 @@ pub enum Error {
 
 /// [`Event`] struct
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(crate = "self::serde")]
 pub struct Event {
     /// Id
     pub id: EventId,
