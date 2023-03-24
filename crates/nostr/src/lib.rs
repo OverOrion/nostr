@@ -3,6 +3,7 @@
 
 
 
+#![cfg_attr(not(feature = "std"), feature(error_in_core))]
 
 #![warn(missing_docs)]
 #![warn(rustdoc::bare_urls)]
@@ -15,7 +16,6 @@
 )]
 
 #![cfg_attr(not(feature = "std"), no_std)]
-
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
