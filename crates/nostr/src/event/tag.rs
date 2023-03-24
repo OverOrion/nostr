@@ -5,7 +5,7 @@
 
 
 #[cfg(feature = "alloc")]
-use alloc::{fmt, format, str::FromStr, vec, vec::Vec, string::String};
+use alloc::{fmt, format, str::FromStr, vec, vec::Vec, string::{String, ToString}};
 
 #[cfg(not(feature = "std"))]
 use core::num::ParseIntError;
