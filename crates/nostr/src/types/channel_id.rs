@@ -4,7 +4,7 @@
 //! Channel Id
 
 #[cfg(feature = "alloc")]
-use alloc::{vec::Vec, string::String};
+use alloc::{vec::Vec, string::{String, ToString}};
 
 #[cfg(feature = "alloc")]
 use alloc::fmt;

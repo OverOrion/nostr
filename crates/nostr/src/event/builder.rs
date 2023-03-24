@@ -3,7 +3,7 @@
 
 //! Event builder
 #[cfg(feature = "alloc")]
-use alloc::{string::String, vec::Vec};
+use alloc::{string::{String, ToString}, vec::Vec};
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::Instant;
