@@ -3,7 +3,7 @@
 
 //! Event builder
 #[cfg(feature = "alloc")]
-use alloc::{string::String, vec::Vec};
+use alloc::{string::{String, ToString}, vec::Vec};
 
 use secp256k1::{Message, XOnlyPublicKey};
 use serde_json::{json, Value};

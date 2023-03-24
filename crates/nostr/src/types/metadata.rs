@@ -6,7 +6,7 @@
 use url::Url;
 
 #[cfg(feature = "alloc")]
-use alloc::string::String;
+use alloc::string::{String, ToString};
 
 /// [`Metadata`] error
 #[derive(Debug, thiserror::Error)]
