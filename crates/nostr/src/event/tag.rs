@@ -7,8 +7,8 @@
 #[cfg(feature = "alloc")]
 use alloc::{fmt, format, str::FromStr, vec, vec::Vec, string::String};
 
-#[cfg(feature = "alloc")]
-use core::num::error::ParseIntError;
+#[cfg(not(feature = "std"))]
+use core::num::ParseIntError;
 
 #[cfg(feature = "std")]
 use std::{fmt, str::FromStr, num::ParseIntError};
