@@ -4,9 +4,14 @@
 //! NIP26
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/26.md>
+#[cfg(feature = "alloc")]
+use alloc::{fmt, format, str::FromStr, string::{String, ToString}, vec, vec::Vec};
 
-use std::fmt;
-use std::str::FromStr;
+#[cfg(not(feature = "std"))]
+use core::num;
+
+#[cfg(feature = "std")]
+use std::{fmt, num, str::FromStr};
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;
@@ -36,7 +41,7 @@ pub enum Error {
     ConditionsParseInvalidCondition,
     /// Invalid condition, cannot parse expected number
     #[error("Invalid condition, cannot parse expected number")]
-    ConditionsParseNumeric(#[from] std::num::ParseIntError),
+    ConditionsParseNumeric(#[from] num::ParseIntError),
     /// Conditions not satisfied
     #[error("Conditions not satisfied")]
     ConditionsValidation(#[from] ValidationError),
