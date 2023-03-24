@@ -11,7 +11,7 @@ use core::str::FromStr;
 use std::{fmt, num, time::{SystemTime, UNIX_EPOCH}};
 
 #[cfg(feature = "alloc")]
-use alloc::{fmt, vec::Vec, string::String};
+use alloc::fmt;
 #[cfg(feature = "alloc")]
 use core::num;
 
