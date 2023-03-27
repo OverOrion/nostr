@@ -3,12 +3,15 @@
 
 //! Time
 
-use core::time::Duration;
 use core::ops::{Add, Sub};
 use core::str::FromStr;
+use core::time::Duration;
 
 #[cfg(feature = "std")]
-use std::{fmt, num, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    fmt, num,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 #[cfg(feature = "alloc")]
 use alloc::fmt;
@@ -22,16 +25,65 @@ use serde::{Deserialize, Serialize};
 #[cfg(target_arch = "wasm32")]
 const UNIX_EPOCH: SystemTime = SystemTime::UNIX_EPOCH;
 
+//#[cfg(not(feature = "std"))]
+use chrono;
 
 /// Helper trait for acquiring time in `no_std` environments.
-#[cfg(not(feature = "std"))]
 pub trait TimeSupplier {
     type Now;
 
     fn now(&self) -> Self::Now;
-    fn elapsed_since(&self, since: Self::Now) -> Duration;
+    fn starting_point() -> Self::Now;
+    fn elapsed_since(now: Self::Now, since: Self::Now) -> Duration;
 
-    fn as_i64(&self) -> i64;
+    fn as_i64(duration: Duration) -> i64;
+    fn to_timestamp(duration: Duration) -> Timestamp;
+}
+
+//#[cfg(target_arch = "wasm32")]
+use instant::Instant as InstantWasm32;
+//#[cfg(target_arch = "wasm32")]
+impl TimeSupplier for InstantWasm32 {
+    type Now = InstantWasm32;
+
+    fn now(&self) -> Self::Now {
+        InstantWasm32::now()
+    }
+
+    fn elapsed_since(now: Self::Now, since: Self::Now) -> Duration {
+        now - since
+    }
+
+    fn as_i64(duration: Duration) -> i64 {
+        duration.as_millis() as i64
+    }
+
+    fn to_timestamp(duration: Duration) -> Timestamp {
+        Timestamp(duration.as_millis() as i64)
+    }
+}
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "std"))]
+use std::time::Instant;
+#[cfg(all(not(target_arch = "wasm32"), feature = "std"))]
+impl TimeSupplier for Instant {
+    type Now = Instant;
+
+    fn now(&self) -> Self::Now {
+        Instant::now()
+    }
+
+    fn elapsed_since(now: Self::Now, since: Self::Now) -> Duration {
+        now - since
+    }
+
+    fn as_i64(duration: Duration) -> i64 {
+        duration.as_millis() as i64
+    }
+
+    fn to_timestamp(duration: Duration) -> Timestamp {
+        Timestamp(duration.as_i64())
+    }
 }
 
 /// Unix timestamp in seconds
@@ -49,9 +101,10 @@ impl Timestamp {
         Self(ts as i64)
     }
 
-    #[cfg(not(feature = "std"))]
-    pub fn now_no_std(time_supplier: &impl TimeSupplier) -> Self {
-        Self(time_supplier.as_i64())
+    //#[cfg(not(feature = "std"))]
+    pub fn now_nostd() -> Self {
+        let now = chrono::Local::now().timestamp;
+        Self(now)
     }
 
     /// Get timestamp as [`u64`]
