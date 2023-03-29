@@ -25,29 +25,33 @@ use serde::{Deserialize, Serialize};
 #[cfg(target_arch = "wasm32")]
 const UNIX_EPOCH: SystemTime = SystemTime::UNIX_EPOCH;
 
-//#[cfg(not(feature = "std"))]
-use chrono;
-
 /// Helper trait for acquiring time in `no_std` environments.
 pub trait TimeSupplier {
     type Now;
+    type StartingPoint;
 
     fn now(&self) -> Self::Now;
-    fn starting_point() -> Self::Now;
+    fn starting_point(&self) -> Self::StartingPoint;
     fn elapsed_since(now: Self::Now, since: Self::Now) -> Duration;
+    fn elapsed_duration(now: Self::Now, since: Self::StartingPoint) -> Duration;
 
     fn as_i64(duration: Duration) -> i64;
     fn to_timestamp(duration: Duration) -> Timestamp;
 }
 
-//#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")]
 use instant::Instant as InstantWasm32;
-//#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")]
 impl TimeSupplier for InstantWasm32 {
     type Now = InstantWasm32;
+    type StartingPoint = std::time::SystemTime;
 
     fn now(&self) -> Self::Now {
         InstantWasm32::now()
+    }
+
+    fn starting_point(&self) -> Self::Now {
+        std::time::UNIX_EPOCH
     }
 
     fn elapsed_since(now: Self::Now, since: Self::Now) -> Duration {
@@ -102,9 +106,15 @@ impl Timestamp {
     }
 
     //#[cfg(not(feature = "std"))]
-    pub fn now_nostd() -> Self {
-        let now = chrono::Local::now().timestamp;
-        Self(now)
+    pub fn now_nostd<T>(time_supplier: &T) -> Self
+    where
+        T: TimeSupplier,
+    {
+        let now = time_supplier.now();
+        let starting_point = time_supplier.starting_point();
+        let duration = <T as TimeSupplier>::elapsed_duration(now, starting_point);
+
+        <T as TimeSupplier>::to_timestamp(duration)
     }
 
     /// Get timestamp as [`u64`]
