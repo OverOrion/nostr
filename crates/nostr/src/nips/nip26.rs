@@ -5,7 +5,13 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/26.md>
 #[cfg(feature = "alloc")]
-use alloc::{fmt, format, str::FromStr, string::{String, ToString}, vec, vec::Vec};
+use alloc::{
+    fmt, format,
+    str::FromStr,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
 #[cfg(not(feature = "std"))]
 use core::num;
