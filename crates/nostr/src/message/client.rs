@@ -5,7 +5,12 @@
 //! Client messages
 
 #[cfg(feature = "alloc")]
-use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
