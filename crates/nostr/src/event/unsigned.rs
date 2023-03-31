@@ -50,6 +50,7 @@ pub struct UnsignedEvent {
 
 impl UnsignedEvent {
     /// Sign an [`UnsignedEvent`]
+    #[cfg(feature = "std")]
     pub fn sign(self, keys: &Keys) -> Result<Event, Error> {
         let message = Message::from_slice(self.id.as_bytes())?;
         Ok(Event {
@@ -65,7 +66,25 @@ impl UnsignedEvent {
         })
     }
 
+    /// Sign an [`UnsignedEvent`] with specified signature
+    #[cfg(not(feature = "std"))]
+    pub fn sign_with_signature(self, keys: &Keys, sig: Signature) -> Result<Event, Error> {
+        let message = Message::from_slice(self.id.as_bytes())?;
+        Ok(Event {
+            id: self.id,
+            pubkey: self.pubkey,
+            created_at: self.created_at,
+            kind: self.kind,
+            tags: self.tags,
+            content: self.content,
+            sig,
+            #[cfg(feature = "nip03")]
+            ots: None,
+        })
+    }
+
     /// Add signature to [`UnsignedEvent`]
+    #[cfg(feature = "std")]
     pub fn add_signature(self, sig: Signature) -> Result<Event, Error> {
         let event = Event {
             id: self.id,

@@ -20,7 +20,7 @@ use secp256k1::Secp256k1;
 use secp256k1::Signing;
 
 #[cfg(feature = "alloc")]
-use randrand::Rng;
+use rand::Rng;
 #[cfg(feature = "std")]
 use secp256k1::rand::Rng;
 use secp256k1::schnorr::Signature;
@@ -236,7 +236,7 @@ impl Keys {
 
     /// Sign schnorr [`Message`]
     #[cfg(not(feature = "std"))]
-    pub fn sign_schnorr_with_secp<C>(
+    pub fn sign_schnorr_with_secp<C: Signing>(
         &self,
         message: &Message,
         secp: &Secp256k1<C>,
