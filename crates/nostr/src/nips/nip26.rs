@@ -34,7 +34,7 @@ use crate::key::{self, Keys};
 use crate::SECP256K1;
 
 #[cfg(not(feature = "std"))]
-use secp256k1::{Secp256k1, Signing};
+use secp256k1::{Secp256k1, Signing, Verification};
 
 const DELEGATION_KEYWORD: &str = "delegation";
 
@@ -80,6 +80,7 @@ pub enum ValidationError {
 
 /// Sign delegation.
 /// See `create_delegation_tag` for more complete functionality.
+#[cfg(feature = "std")]
 pub fn sign_delegation(
     delegator_keys: &Keys,
     delegatee_pk: XOnlyPublicKey,
@@ -89,6 +90,18 @@ pub fn sign_delegation(
     let hashed_token = Sha256Hash::hash(unhashed_token.as_bytes());
     let message = Message::from_slice(hashed_token.as_byte_array())?;
     Ok(delegator_keys.sign_schnorr(&message)?)
+}
+#[cfg(not(feature = "std"))]
+pub fn sign_delegation_with_signer<C: Signing>(
+    delegator_keys: &Keys,
+    delegatee_pk: XOnlyPublicKey,
+    conditions: Conditions,
+    secp: &Secp256k1<C>,
+) -> Result<Signature, Error> {
+    let unhashed_token = DelegationToken::new(delegatee_pk, conditions);
+    let hashed_token = Sha256Hash::hash(unhashed_token.as_bytes());
+    let message = Message::from_slice(&hashed_token)?;
+    Ok(delegator_keys.sign_schnorr_with_secp(&message, secp)?)
 }
 
 /// Verify delegation signature
@@ -108,7 +121,7 @@ pub fn verify_delegation_signature(
 
 /// Verify delegation signature
 #[cfg(not(feature = "std"))]
-pub fn verify_delegation_signature<C: Signing>(
+pub fn verify_delegation_signature<C: Verification>(
     delegator_public_key: XOnlyPublicKey,
     signature: Signature,
     delegatee_public_key: XOnlyPublicKey,
@@ -157,12 +170,37 @@ pub struct DelegationTag {
 impl DelegationTag {
     /// Create a delegation tag (including the signature).
     /// See also validate().
+    #[cfg(feature = "std")]
     pub fn new(
         delegator_keys: &Keys,
         delegatee_pubkey: XOnlyPublicKey,
         conditions: Conditions,
     ) -> Result<Self, Error> {
         let signature = sign_delegation(delegator_keys, delegatee_pubkey, conditions.clone())?;
+        Ok(Self {
+            delegator_pubkey: delegator_keys.public_key(),
+            conditions,
+            signature,
+        })
+    }
+
+    /// Create a delegation tag (including the signature).
+    /// See also validate().
+    #[cfg(not(feature = "std"))]
+    pub fn new<C>(
+        delegator_keys: &Keys,
+        delegatee_pubkey: XOnlyPublicKey,
+        conditions: Conditions,
+        signer: Secp256k1<C>,
+    ) -> Result<Self, Error> {
+        use secp256k1::Secp256k1;
+
+        let signature = sign_delegation_with_signer(
+            delegator_keys,
+            delegatee_pubkey,
+            conditions.clone(),
+            signer,
+        )?;
         Ok(Self {
             delegator_pubkey: delegator_keys.public_key(),
             conditions,
@@ -186,6 +224,7 @@ impl DelegationTag {
     }
 
     /// Validate a delegation tag, check signature and conditions.
+    #[cfg(feature = "std")]
     pub fn validate(
         &self,
         delegatee_pubkey: XOnlyPublicKey,
@@ -197,6 +236,30 @@ impl DelegationTag {
             self.signature,
             delegatee_pubkey,
             self.conditions.clone(),
+        )
+        .map_err(|_| Error::ConditionsValidation(ValidationError::InvalidSignature))?;
+
+        // validate conditions
+        self.conditions.evaluate(event_properties)?;
+
+        Ok(())
+    }
+    /// Validate a delegation tag, check signature and conditions.
+    #[cfg(not(feature = "std"))]
+    pub fn validate<C: Verification>(
+        &self,
+        delegatee_pubkey: XOnlyPublicKey,
+        event_properties: &EventProperties,
+        secp: &Secp256k1<C>,
+    ) -> Result<(), Error> {
+        // verify signature
+
+        verify_delegation_signature(
+            self.delegator_pubkey,
+            self.signature,
+            delegatee_pubkey,
+            self.conditions.clone(),
+            secp,
         )
         .map_err(|_| Error::ConditionsValidation(ValidationError::InvalidSignature))?;
 
