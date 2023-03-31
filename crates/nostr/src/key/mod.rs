@@ -20,7 +20,7 @@ use secp256k1::Secp256k1;
 use secp256k1::Signing;
 
 #[cfg(feature = "alloc")]
-use randrand::Rng;
+use rand::Rng;
 #[cfg(feature = "std")]
 use secp256k1::rand::Rng;
 use secp256k1::schnorr::Signature;
@@ -94,6 +94,7 @@ impl Keys {
         }
     }
 
+    /// Initialize from secret key.
     #[cfg(not(feature = "std"))]
     pub fn new_with_secp<C: secp256k1::Signing>(
         secret_key: SecretKey,
@@ -126,11 +127,12 @@ impl Keys {
         Self::new(secret_key)
     }
 
+    /// Generate new random [`Keys`]
     #[cfg(not(feature = "std"))]
     pub fn generate_with_secp<C: Signing>(secp: &Secp256k1<C>) -> Self {
         let mut rng = OsRng::default();
         let (secret_key, _) = secp.generate_keypair(&mut rng);
-        Self::new(secret_key)
+        Self::new_with_secp(secret_key, secp)
     }
 
     /// Generate random [`Keys`] with custom [`Rng`]
@@ -143,13 +145,14 @@ impl Keys {
         Self::new(secret_key)
     }
 
+    /// Generate random [`Keys`] with custom [`Rng`] and given [`Secp256k1`]
     #[cfg(not(feature = "std"))]
     pub fn generate_with_rng_with_secp<R, C: Signing>(rng: &mut R, secp: &Secp256k1<C>) -> Self
     where
         R: Rng + ?Sized,
     {
         let (secret_key, _) = secp.generate_keypair(rng);
-        Self::new(secret_key)
+        Self::new_with_secp(secret_key, secp)
     }
 
     /// Generate random [`Keys`] with custom [`Rng`] and without [`KeyPair`]
@@ -241,13 +244,13 @@ impl Keys {
 
     /// Sign schnorr [`Message`]
     #[cfg(not(feature = "std"))]
-    pub fn sign_schnorr_with_secp<C>(
+    pub fn sign_schnorr_with_secp<C: Signing>(
         &self,
         message: &Message,
         secp: &Secp256k1<C>,
     ) -> Result<Signature, Error> {
-        let keypair: &KeyPair = &self.key_pair()?;
-        Ok(secp.sign_schnorr(message, keypair))
+        let keypair: &KeyPair = &self.key_pair_from_secp(&secp)?;
+        Ok(secp.sign_schnorr_no_aux_rand(message, keypair))
     }
 }
 

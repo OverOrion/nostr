@@ -16,6 +16,8 @@ use alloc::{
 
 use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
+#[cfg(feature = "alloc")]
+use secp256k1::{Secp256k1, Verification};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -79,24 +81,15 @@ pub struct Event {
 }
 
 impl Event {
-    /// Verify event
+    /// Verify Event
     #[cfg(feature = "std")]
     pub fn verify(&self) -> Result<(), Error> {
-        let id = EventId::new(
-            &self.pubkey,
-            self.created_at,
-            &self.kind,
-            &self.tags,
-            &self.content,
-        );
-        let message = Message::from_slice(id.as_bytes())?;
-        SECP256K1
-            .verify_schnorr(&self.sig, &message, &self.pubkey)
-            .map_err(|_| Error::InvalidSignature)
+        self.verify_with_context(SECP256K1)
     }
 
+    /// Verify Event
     #[cfg(not(feature = "std"))]
-    pub fn verify_with_context(&self, context: &impl secp256k1::Verification) -> Result<(), Error> {
+    pub fn verify_with_context<C: Verification>(&self, secp: &Secp256k1<C>) -> Result<(), Error> {
         let id = EventId::new(
             &self.pubkey,
             self.created_at,
@@ -105,15 +98,13 @@ impl Event {
             &self.content,
         );
         let message = Message::from_slice(id.as_bytes())?;
-        context
-            .verify_schnorr(&self.sig, &message, &self.pubkey)
+        secp.verify_schnorr(&self.sig, &message, &self.pubkey)
             .map_err(|_| Error::InvalidSignature)
     }
 
     /// New event from [`Value`]
     pub fn from_value(value: Value) -> Result<Self, Error> {
         let event: Self = serde_json::from_value(value)?;
-        event.verify()?;
         Ok(event)
     }
 
@@ -123,7 +114,6 @@ impl Event {
         S: Into<String>,
     {
         let event: Self = serde_json::from_str(&json.into())?;
-        event.verify()?;
         Ok(event)
     }
 
@@ -181,8 +171,6 @@ impl Event {
             #[cfg(feature = "nip03")]
             ots: None,
         };
-
-        event.verify()?;
 
         Ok(event)
     }
