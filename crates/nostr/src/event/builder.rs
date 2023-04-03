@@ -158,7 +158,7 @@ impl EventBuilder {
         use core::cmp;
 
         let mut nonce: u128 = 0;
-        let mut tags: Vec<Tag> = self.tags;
+        let mut tags: Vec<Tag> = self.tags.clone();
 
         let pubkey = keys.public_key();
 
