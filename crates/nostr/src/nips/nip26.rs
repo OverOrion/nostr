@@ -91,6 +91,9 @@ pub fn sign_delegation(
     let message = Message::from_slice(hashed_token.as_byte_array())?;
     Ok(delegator_keys.sign_schnorr(&message)?)
 }
+
+/// Sign delegation.
+/// See `create_delegation_tag` for more complete functionality.
 #[cfg(not(feature = "std"))]
 pub fn sign_delegation_with_signer<C: Signing>(
     delegator_keys: &Keys,
@@ -187,19 +190,17 @@ impl DelegationTag {
     /// Create a delegation tag (including the signature).
     /// See also validate().
     #[cfg(not(feature = "std"))]
-    pub fn new<C>(
+    pub fn new<C: Signing>(
         delegator_keys: &Keys,
         delegatee_pubkey: XOnlyPublicKey,
         conditions: Conditions,
         signer: Secp256k1<C>,
     ) -> Result<Self, Error> {
-        use secp256k1::Secp256k1;
-
         let signature = sign_delegation_with_signer(
             delegator_keys,
             delegatee_pubkey,
             conditions.clone(),
-            signer,
+            &signer,
         )?;
         Ok(Self {
             delegator_pubkey: delegator_keys.public_key(),

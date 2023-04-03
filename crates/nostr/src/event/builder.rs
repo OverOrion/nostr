@@ -145,7 +145,7 @@ impl EventBuilder {
     /// Build unsigned POW [`Event`]
     pub fn to_unsigned_pow_event(self, pubkey: XOnlyPublicKey, difficulty: u8) -> UnsignedEvent {
         let mut nonce: u128 = 0;
-        let mut tags: Vec<Tag> = self.tags;
+        let mut tags: Vec<Tag> = self.tags.clone();
 
         let pubkey = keys.public_key();
 

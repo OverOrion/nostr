@@ -13,7 +13,7 @@ use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
 use serde::{Deserialize, Serialize};
 
-use crate::{Event, EventId, Keys, Kind, Tag, Timestamp};
+use crate::{Event, EventId, Kind, Tag, Timestamp};
 
 /// [`UnsignedEvent`] error
 #[derive(Debug, thiserror::Error)]
@@ -69,8 +69,7 @@ impl UnsignedEvent {
 
     /// Sign an [`UnsignedEvent`] with specified signature
     #[cfg(not(feature = "std"))]
-    pub fn sign_with_signature(self, keys: &Keys, sig: Signature) -> Result<Event, Error> {
-        let message = Message::from_slice(self.id.as_bytes())?;
+    pub fn sign_with_signature(self, sig: Signature) -> Result<Event, Error> {
         Ok(Event {
             id: self.id,
             pubkey: self.pubkey,

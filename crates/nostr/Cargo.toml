@@ -32,6 +32,9 @@ alloc = [
     "serde_json/alloc",
     "url_no_std",
     "secp256k1/alloc",
+    "secp256k1/serde",
+    "secp256k1/rand",
+    "secp256k1/core-error",
     "rand_core",
     "rand",
 
