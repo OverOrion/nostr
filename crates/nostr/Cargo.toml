@@ -78,7 +78,8 @@ url_no_std = { package = "url", features = [
     "serde",
     "idna",
     "alloc",
-    "core-error"
+    "core-error",
+    "core-net",
 ], path = "../../../rust-url/url", optional = true, default-features = false }
 
 rand_core = { version = "0.6", features = [
@@ -91,6 +92,9 @@ rand = { version = "0.8", features = [
     "getrandom",
     "serde1",
 ], default-features = false, optional = true }
+
+
+
 
 #[target.'cfg(target_arch = "wasm32")'.dependencies]
 #getrandom = { version = "0.2", features = ["js"] }
