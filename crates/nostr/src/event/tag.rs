@@ -48,11 +48,11 @@ pub enum Error {
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
     /// Secp256k1
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Hex decoding error
-    #[error(transparent)]
-    Hex(#[from] bitcoin_hashes::hex::Error),
+    #[error("Hex Error: {0}")]
+    Hex(bitcoin_hashes::hex::Error),
     /// Url parse error
     #[error("invalid url")]
     Url(#[from] url::ParseError),
@@ -68,6 +68,18 @@ pub enum Error {
     /// Invalid Zap Request
     #[error("Invalid Zap request")]
     InvalidZapRequest,
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
+}
+
+impl From<bitcoin_hashes::hex::Error> for Error {
+    fn from(error: bitcoin_hashes::hex::Error) -> Self {
+        Self::Hex(error)
+    }
 }
 
 /// Marker
