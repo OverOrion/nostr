@@ -24,3 +24,6 @@ panic = "abort"
 [profile.dev]
 panic = "abort"
 
+[patch.crates-io]
+serde = {default-features = false, features = ["derive", "unstable", "alloc"], path = "../serde/serde"}
+serde_derive = {default-features = false, features = ["derive", "unstable", "alloc"], path = "../serde/serde_derive"}
