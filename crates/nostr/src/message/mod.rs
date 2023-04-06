@@ -18,9 +18,15 @@ pub enum MessageHandleError {
     #[error("Message has an invalid format")]
     InvalidMessageFormat,
     /// Impossible to deserialize message
-    #[error("Json deserialization failed: {0}")]
-    Json(#[from] serde_json::Error),
+    #[error("Serde json Error: {0}")]
+    Json(serde_json::Error),
     /// Event error
     #[error(transparent)]
     Event(#[from] crate::event::Error),
+}
+
+impl From<serde_json::Error> for MessageHandleError {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
+    }
 }
