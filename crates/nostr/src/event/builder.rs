@@ -36,8 +36,8 @@ pub enum Error {
     #[error("Secp256k1 Error: {0}")]
     Secp256k1(secp256k1::Error),
     /// JSON error
-    #[error(transparent)]
-    Json(#[from] serde_json::Error),
+    #[error("Serde json Error: {0}")]
+    Json(serde_json::Error),
     /// NIP04 error
     #[cfg(feature = "nip04")]
     #[error(transparent)]
@@ -47,6 +47,12 @@ pub enum Error {
 impl From<secp256k1::Error> for Error {
     fn from(error: secp256k1::Error) -> Self {
         Self::Secp256k1(error)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
     }
 }
 
