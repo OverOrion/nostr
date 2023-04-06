@@ -10,7 +10,6 @@ use alloc::{
 
 use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
-#[cfg(not(feature = "std"))]
 use secp256k1::{Secp256k1, Signing};
 use serde_json::{json, Value};
 use url::Url;

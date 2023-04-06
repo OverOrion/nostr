@@ -13,7 +13,7 @@ use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
 use serde::{Deserialize, Serialize};
 
-use crate::{Event, EventId, Kind, Tag, Timestamp};
+use crate::{Event, EventId, Keys, Kind, Tag, Timestamp};
 
 /// [`UnsignedEvent`] error
 #[derive(Debug, thiserror::Error)]

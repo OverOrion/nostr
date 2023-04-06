@@ -73,7 +73,6 @@ thiserror = { version = "1.0", optional = true }
 thiserror-core = { version = "1.0", package = "thiserror-core", default-features = false, optional = true }
 url = { version = "2", features = ["serde"], optional = true }
 url_no_std = { package = "url", features = [
-    "serde",
     "idna",
     "alloc",
     "core-error",
