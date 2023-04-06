@@ -13,7 +13,7 @@ use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
 use serde::{Deserialize, Serialize};
 
-use crate::{Event, EventId, Kind, Tag, Timestamp};
+use crate::{Event, EventId, Keys, Kind, Tag, Timestamp};
 
 /// [`UnsignedEvent`] error
 #[derive(Debug, thiserror::Error)]
@@ -25,11 +25,17 @@ pub enum Error {
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Event error
     #[error(transparent)]
     Event(#[from] super::Error),
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
 }
 
 /// [`UnsignedEvent`] struct
