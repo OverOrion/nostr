@@ -10,9 +10,15 @@ use alloc::{
 };
 
 use secp256k1::schnorr::Signature;
-use secp256k1::{Message, XOnlyPublicKey};
+use secp256k1::XOnlyPublicKey;
 
-use crate::{Event, EventId, Keys, Kind, Tag, Timestamp};
+#[cfg(feature = "std")]
+use secp256k1::Message;
+
+use crate::{Event, EventId, Kind, Tag, Timestamp};
+
+#[cfg(feature = "std")]
+use crate::Keys;
 
 /// [`UnsignedEvent`] error
 #[derive(Debug, thiserror::Error)]
