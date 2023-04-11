@@ -10,7 +10,6 @@ use alloc::{
 
 use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
-#[cfg(not(feature = "std"))]
 use secp256k1::{Secp256k1, Signing};
 use serde_json::{json, Value};
 use url::Url;
@@ -33,16 +32,28 @@ pub enum Error {
     /// Key error
     #[error(transparent)]
     Key(#[from] key::Error),
-    #[error(transparent)]
     /// Secp256k1 error
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// JSON error
-    #[error(transparent)]
-    Json(#[from] serde_json::Error),
+    #[error("Serde json Error: {0}")]
+    Json(serde_json::Error),
     /// NIP04 error
     #[cfg(feature = "nip04")]
     #[error(transparent)]
     NIP04(#[from] nip04::Error),
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
+    }
 }
 
 /// [`Event`] builder

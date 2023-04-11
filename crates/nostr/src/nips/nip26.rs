@@ -45,8 +45,8 @@ pub enum Error {
     #[error(transparent)]
     Key(#[from] key::Error),
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Invalid condition in conditions string
     #[error("Invalid condition in conditions string")]
     ConditionsParseInvalidCondition,
@@ -59,6 +59,12 @@ pub enum Error {
     /// Delegation tag parse error
     #[error("Delegation tag parse error")]
     DelegationTagParse,
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
 }
 
 /// Tag validation errors

@@ -12,8 +12,14 @@ use alloc::string::{String, ToString};
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Error serializing or deserializing JSON data
-    #[error("json error: {0}")]
-    Json(#[from] serde_json::Error),
+    #[error("Serde json Error: {0}")]
+    Json(serde_json::Error),
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
+    }
 }
 
 /// Metadata

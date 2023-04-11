@@ -1,51 +1,25 @@
 [package]
 name = "ensure_no_std"
-version = "0.1.0"
+version = "0.7.0"
+authors = ["Supercomputing Systems AG <info@scs.ch>"]
+license = "Apache-2.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-
-[features]
-default = ["alloc"]
-alloc = []
-std = []
-
 [dependencies]
-thiserror-core = { version = "1.0", package = "thiserror-core", default-features = false} #PASSED
-bitcoin_hashes = { version = "0.11", default-features = false, path = "../../../bitcoin_hashes", features = ["serde", "core-error"]} #PASSED WO alloc
-#serde = { version = "1.0", features = [
- #   "derive", 
-#], default-features = false } #  #PASSED WO alloc
-
-serde = {default-features = false, features = ["derive", "unstable", "alloc"], path = "../../../serde/serde"}
-
-
-
-
-# serde_json = { version = "1.0", default-features = false} # NEED ALLOC OR STD
-#url_no_std = { package = "url", features = [
-    #"serde",
-#], branch = "no_std", git = "https://github.com/servo/rust-url", default-features = false } # CULPRIT
-url_no_std = { package = "url", features = [
-"alloc",
-"core-net",
-"core-error"
-], path = "../../../rust-url/url", default-features = false }
-
 libc = { version = "0.2.119", default-features = false }
 
+nostr = { path = "../nostr", default-features = false, features = ["alloc"] }
 
-#WORKS
-form_urlencoded = { version = "1.1.0", path = "../../../rust-url/form_urlencoded", default-features = false, features = ["alloc"] }
-#WORKS
-idna = {path = "../../../rust-url/idna", default-features = false, features = ["alloc"] }
+#secp256k1 = { version = "0.24", default-features = false, features = ["alloc", "serde", "rand"]}
 
-#WORKS
-percent-encoding = {path = "../../../rust-url/percent_encoding", default-features = false, features = ["alloc"] }
+#rand = { version = "0.8", features = [
+#    "alloc",
+#    "getrandom",
+#], default-features = false }
 
-
-#nostr = {path = "../nostr", default-features = false, features = ["alloc"]}
-
-
-
+#url_no_std = { package = "url", features = [
+#    "idna",
+#    "alloc",
+#    "core-error",
+#    "core-net",
+#], path = "../../../rust-url/url", default-features = false }

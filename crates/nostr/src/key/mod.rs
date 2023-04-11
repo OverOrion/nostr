@@ -52,8 +52,14 @@ pub enum Error {
     #[error("Unsupported char: {0}")]
     InvalidChar(char),
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
 }
 
 /// Trait for [`Keys`]
