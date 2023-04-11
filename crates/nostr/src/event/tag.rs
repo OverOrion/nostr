@@ -3,7 +3,7 @@
 
 //! Tag
 
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::{
     fmt, format,
     str::FromStr,
@@ -12,7 +12,7 @@ use alloc::{
     vec::Vec,
 };
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use core::num::ParseIntError;
 
 #[cfg(feature = "std")]

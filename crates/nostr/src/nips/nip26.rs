@@ -4,7 +4,7 @@
 //! NIP26
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/26.md>
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::{
     fmt, format,
     str::FromStr,
@@ -13,7 +13,7 @@ use alloc::{
     vec::Vec,
 };
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use core::num;
 
 #[cfg(feature = "std")]

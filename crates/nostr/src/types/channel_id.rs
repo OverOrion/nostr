@@ -3,13 +3,13 @@
 
 //! Channel Id
 
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
 
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::fmt;
 #[cfg(feature = "std")]
 use std::fmt;
