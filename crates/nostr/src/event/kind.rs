@@ -5,7 +5,7 @@
 
 use core::num::ParseIntError;
 
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::{fmt, str::FromStr};
 
 #[cfg(feature = "std")]
