@@ -145,7 +145,7 @@ impl EventBuilder {
         keys: &Keys,
         difficulty: u8,
         time_supplier: &T,
-        secp: &Secp256k1<C>,
+        _secp: &Secp256k1<C>,
     ) -> Result<Event, Error>
     where
         T: TimeSupplier,
@@ -173,8 +173,7 @@ impl EventBuilder {
             tags.push(Tag::POW { nonce, difficulty });
 
             let new_now = time_supplier.now();
-            let starting_point = time_supplier.starting_point();
-            let created_at = time_supplier.elapsed_duration(new_now.clone(), starting_point);
+            let created_at = time_supplier.duration_since_starting_point(now.clone());
             let created_at = time_supplier.to_timestamp(created_at);
             let id = EventId::new(&pubkey, created_at, &self.kind, &tags, &self.content);
 
@@ -192,7 +191,7 @@ impl EventBuilder {
                 let message = Message::from_slice(id.as_bytes())?;
 
                 #[cfg(all(feature = "alloc", not(feature = "std")))]
-                let sig = keys.sign_schnorr_with_secp(&message, &secp)?;
+                let sig = keys.sign_schnorr_with_secp(&message, &_secp)?;
 
                 #[cfg(all(feature = "std", not(feature = "alloc")))]
                 let sig = keys.sign_schnorr(&message)?;
