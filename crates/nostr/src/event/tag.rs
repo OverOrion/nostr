@@ -54,8 +54,8 @@ pub enum Error {
     #[error("Hex Error: {0}")]
     Hex(bitcoin_hashes::hex::Error),
     /// Url parse error
-    #[error("invalid url")]
-    Url(#[from] url::ParseError),
+    #[error("invalid url: {0}")]
+    Url(url::ParseError),
     /// EventId error
     #[error(transparent)]
     EventId(#[from] id::Error),
@@ -79,6 +79,12 @@ impl From<secp256k1::Error> for Error {
 impl From<bitcoin_hashes::hex::Error> for Error {
     fn from(error: bitcoin_hashes::hex::Error) -> Self {
         Self::Hex(error)
+    }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(error: url::ParseError) -> Self {
+        Self::Url(error)
     }
 }
 
