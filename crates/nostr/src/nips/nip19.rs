@@ -7,6 +7,11 @@
 
 #![allow(missing_docs)]
 
+#[cfg(not(feature = "std"))]
+use alloc::{string::{self, ToString}, vec::Vec};
+#[cfg(feature = "std")]
+use std::string;
+
 use bech32::{self, FromBase32, ToBase32, Variant};
 use secp256k1::{SecretKey, XOnlyPublicKey};
 
@@ -43,7 +48,7 @@ pub enum Error {
     TLV,
     /// UFT-8 error
     #[error(transparent)]
-    UTF8(#[from] std::string::FromUtf8Error),
+    UTF8(#[from] string::FromUtf8Error),
     /// From slice error
     #[error("impossible to perform conversion from slice")]
     TryFromSlice,
