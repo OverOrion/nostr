@@ -8,7 +8,11 @@
 #![allow(missing_docs)]
 
 #[cfg(not(feature = "std"))]
-use alloc::{string::{self, ToString}, vec::Vec};
+use alloc::{
+    string::{self, String, ToString},
+    vec,
+    vec::Vec,
+};
 #[cfg(feature = "std")]
 use std::string;
 
@@ -55,14 +59,25 @@ pub enum Error {
     #[error("impossible to perform conversion from slice")]
     TryFromSlice,
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Hash error
-    #[error(transparent)]
-    Hash(#[from] bitcoin_hashes::Error),
+    #[error("Hash Error: {0}")]
+    Hash(bitcoin_hashes::Error),
     /// EventId error
     #[error(transparent)]
     EventId(#[from] id::Error),
+}
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
+}
+
+impl From<bitcoin_hashes::Error> for Error {
+    fn from(error: bitcoin_hashes::Error) -> Self {
+        Self::Hash(error)
+    }
 }
 
 pub trait FromBech32: Sized {
