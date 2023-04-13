@@ -84,6 +84,8 @@ impl FromBech32 for Profile {
     }
 }
 
+#[cfg(all(feature = "nip19", feature = "alloc"))]
+use alloc::vec;
 #[cfg(feature = "nip19")]
 impl ToBech32 for Profile {
     type Err = Error;
