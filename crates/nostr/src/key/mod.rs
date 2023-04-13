@@ -6,7 +6,9 @@
 //!
 //! This module defines the [`Keys`] structure.
 
-#[cfg(feature = "nip19")]
+#[cfg(all(feature = "alloc", feature = "nip19", not(feature = "std")))]
+use alloc::str::FromStr;
+#[cfg(all(feature = "std", feature = "nip19", not(feature = "alloc")))]
 use std::str::FromStr;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
