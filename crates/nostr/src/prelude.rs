@@ -5,7 +5,7 @@
 
 // External crates
 #[cfg(feature = "nip19")]
-pub use bech32::*;
+pub use bech32;
 #[cfg(feature = "nip06")]
 pub use bip39::*;
 #[cfg(feature = "nip06")]
@@ -36,7 +36,7 @@ pub use crate::nips::nip06::*;
 pub use crate::nips::nip11::*;
 pub use crate::nips::nip13::*;
 #[cfg(feature = "nip19")]
-pub use crate::nips::nip19::*;
+pub use crate::nips::nip19;
 pub use crate::nips::nip26::*;
 #[cfg(feature = "nip46")]
 pub use crate::nips::nip46::*;

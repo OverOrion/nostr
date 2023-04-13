@@ -3,11 +3,11 @@
 
 //! Profile
 
+#[cfg(all(feature = "nip19", feature = "alloc"))]
+use alloc::string::ToString;
 #[cfg(feature = "nip19")]
 use bech32::{self, FromBase32, ToBase32, Variant};
 use secp256k1::XOnlyPublicKey;
-#[cfg(all(feature = "nip19", feature = "alloc"))]
-use alloc::string::ToString;
 
 #[cfg(feature = "nip19")]
 use crate::nips::nip19::{Error, FromBech32, ToBech32, PREFIX_BECH32_PROFILE, RELAY, SPECIAL};
@@ -84,6 +84,8 @@ impl FromBech32 for Profile {
     }
 }
 
+#[cfg(all(feature = "nip19", feature = "alloc"))]
+use alloc::vec;
 #[cfg(feature = "nip19")]
 impl ToBech32 for Profile {
     type Err = Error;
