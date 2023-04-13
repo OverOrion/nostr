@@ -42,8 +42,8 @@ pub enum Error {
     #[error("wrong prefix or variant")]
     WrongPrefixOrVariant,
     /// Bech32 error.
-    #[error(transparent)]
-    Bech32(#[from] bech32::Error),
+    #[error("Bech32 Error: {0}")]
+    Bech32(bech32::Error),
     /// Field missing
     #[error("field missing: {0}")]
     FieldMissing(String),
@@ -76,6 +76,12 @@ impl From<secp256k1::Error> for Error {
 impl From<bitcoin_hashes::Error> for Error {
     fn from(error: bitcoin_hashes::Error) -> Self {
         Self::Hash(error)
+    }
+}
+
+impl From<bech32::Error> for Error {
+    fn from(error: bech32::Error) -> Self {
+        Self::Bech32(error)
     }
 }
 
