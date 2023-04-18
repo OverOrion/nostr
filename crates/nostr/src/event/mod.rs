@@ -76,7 +76,6 @@ impl From<bitcoin_hashes::hex::Error> for Error {
     }
 }
 
-
 /// [`Event`] struct
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct Event {
@@ -108,7 +107,6 @@ impl Event {
     }
 
     /// Verify Event
-    //#[cfg(not(feature = "std"))]
     pub fn verify_with_context<C: Verification>(&self, secp: &Secp256k1<C>) -> Result<(), Error> {
         let id = EventId::new(
             &self.pubkey,
