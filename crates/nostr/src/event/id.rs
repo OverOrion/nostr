@@ -3,8 +3,16 @@
 
 //! Event Id
 
-use std::fmt;
-use std::str::FromStr;
+#[cfg(feature = "std")]
+use std::{fmt, str::FromStr};
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{
+    fmt,
+    str::FromStr,
+    string::{String, ToString},
+    vec,
+};
 
 use bitcoin_hashes::hex::FromHex;
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
@@ -19,11 +27,23 @@ use crate::Timestamp;
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum Error {
     /// Hex error
-    #[error(transparent)]
-    Hex(#[from] bitcoin_hashes::hex::Error),
+    #[error("Hex Error: {0}")]
+    Hex(bitcoin_hashes::hex::Error),
     /// Hash error
-    #[error(transparent)]
-    Hash(#[from] bitcoin_hashes::Error),
+    #[error("Hash Error: {0}")]
+    Hash(bitcoin_hashes::Error),
+}
+
+impl From<bitcoin_hashes::Error> for Error {
+    fn from(error: bitcoin_hashes::Error) -> Self {
+        Self::Hash(error)
+    }
+}
+
+impl From<bitcoin_hashes::hex::Error> for Error {
+    fn from(error: bitcoin_hashes::hex::Error) -> Self {
+        Self::Hex(error)
+    }
 }
 
 /// Event Id

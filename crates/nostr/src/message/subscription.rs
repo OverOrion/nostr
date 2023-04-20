@@ -6,12 +6,23 @@
 
 #![allow(missing_docs)]
 
+#[cfg(feature = "std")]
 use std::fmt;
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{
+    fmt,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;
-use secp256k1::rand::rngs::OsRng;
-use secp256k1::rand::RngCore;
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use rand_core::{OsRng, RngCore};
+#[cfg(feature = "std")]
+use secp256k1::rand::{rngs::OsRng, RngCore};
 use secp256k1::XOnlyPublicKey;
 use serde::de::{self, Deserialize, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, SerializeMap, Serializer};

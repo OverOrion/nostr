@@ -3,9 +3,20 @@
 
 //! Tag
 
-use std::fmt;
-use std::num::ParseIntError;
-use std::str::FromStr;
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{
+    fmt, format,
+    str::FromStr,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use core::num::ParseIntError;
+
+#[cfg(feature = "std")]
+use std::{fmt, num::ParseIntError, str::FromStr};
 
 use secp256k1::schnorr::Signature;
 use secp256k1::XOnlyPublicKey;
@@ -37,14 +48,14 @@ pub enum Error {
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
     /// Secp256k1
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Hex decoding error
-    #[error(transparent)]
-    Hex(#[from] bitcoin_hashes::hex::Error),
+    #[error("Hex Error: {0}")]
+    Hex(bitcoin_hashes::hex::Error),
     /// Url parse error
-    #[error("invalid url")]
-    Url(#[from] url::ParseError),
+    #[error("invalid url: {0}")]
+    Url(url::ParseError),
     /// EventId error
     #[error(transparent)]
     EventId(#[from] id::Error),
@@ -57,6 +68,24 @@ pub enum Error {
     /// Invalid Zap Request
     #[error("Invalid Zap request")]
     InvalidZapRequest,
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
+}
+
+impl From<bitcoin_hashes::hex::Error> for Error {
+    fn from(error: bitcoin_hashes::hex::Error) -> Self {
+        Self::Hex(error)
+    }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(error: url::ParseError) -> Self {
+        Self::Url(error)
+    }
 }
 
 /// Marker
