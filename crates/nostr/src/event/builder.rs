@@ -5,6 +5,7 @@
 #[cfg(feature = "alloc")]
 use alloc::{
     string::{String, ToString},
+    vec,
     vec::Vec,
 };
 
@@ -89,6 +90,7 @@ impl EventBuilder {
     }
 
     /// Build [`UnsignedEvent`]
+    #[cfg(feature = "std")]
     pub fn to_unsigned_event(self, pubkey: XOnlyPublicKey) -> UnsignedEvent {
         let created_at: Timestamp = Timestamp::now();
         let id = EventId::new(&pubkey, created_at, &self.kind, &self.tags, &self.content);
@@ -130,7 +132,8 @@ impl EventBuilder {
             kind: self.kind,
             tags: self.tags,
             content: self.content,
-        }
+            sig,
+        })
     }
 
     /// Build POW [`Event`]
@@ -141,6 +144,7 @@ impl EventBuilder {
     }
 
     /// Build unsigned POW [`Event`]
+    #[cfg(feature = "std")]
     pub fn to_unsigned_pow_event(self, pubkey: XOnlyPublicKey, difficulty: u8) -> UnsignedEvent {
         #[cfg(target_arch = "wasm32")]
         use instant::Instant;
@@ -150,7 +154,9 @@ impl EventBuilder {
         let now = Instant::now();
 
         use secp256k1::SECP256K1;
-        self.to_pow_event_with_time_supplier_with_secp::<Instant, _>(keys, difficulty, &now, SECP256K1)
+        self.to_pow_event_with_time_supplier_with_secp::<Instant, _>(
+            keys, difficulty, &now, SECP256K1,
+        )
     }
 
     /// Build POW [`Event`] using the given time supplier
@@ -213,14 +219,15 @@ impl EventBuilder {
                         / cmp::max(1, time_supplier.elapsed_since(now, new_now).as_millis())
                 );
 
-                return UnsignedEvent {
-                    id,
-                    pubkey,
-                    created_at,
-                    kind: self.kind,
-                    tags,
-                    content: self.content,
-                };
+                let message = Message::from_slice(id.as_bytes())?;
+
+                #[cfg(all(feature = "alloc", not(feature = "std")))]
+                let sig = keys.sign_schnorr_with_secp(&message, &_secp)?;
+
+                #[cfg(all(feature = "std", not(feature = "alloc")))]
+                let sig = keys.sign_schnorr(&message)?;
+
+                return self.to_event_internal(keys, created_at, id, sig);
             }
 
             tags.pop();
