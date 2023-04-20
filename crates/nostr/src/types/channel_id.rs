@@ -3,6 +3,15 @@
 
 //! Channel Id
 
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{fmt, str::FromStr};
+#[cfg(feature = "std")]
 use std::{fmt, str::FromStr};
 
 #[cfg(feature = "nip19")]
@@ -21,11 +30,23 @@ use crate::EventId;
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum Error {
     /// Hex error
-    #[error(transparent)]
-    Hex(#[from] bitcoin_hashes::hex::Error),
+    #[error("Hex Error: {0}")]
+    Hex(bitcoin_hashes::hex::Error),
     /// Hash error
-    #[error(transparent)]
-    Hash(#[from] bitcoin_hashes::Error),
+    #[error("Hash Error: {0}")]
+    Hash(bitcoin_hashes::Error),
+}
+
+impl From<bitcoin_hashes::Error> for Error {
+    fn from(error: bitcoin_hashes::Error) -> Self {
+        Self::Hash(error)
+    }
+}
+
+impl From<bitcoin_hashes::hex::Error> for Error {
+    fn from(error: bitcoin_hashes::hex::Error) -> Self {
+        Self::Hex(error)
+    }
 }
 
 /// Channel Id
@@ -131,6 +152,9 @@ impl FromBech32 for ChannelId {
         ))
     }
 }
+
+#[cfg(all(feature = "nip19", feature = "alloc", not(feature = "std")))]
+use alloc::vec;
 
 #[cfg(feature = "nip19")]
 impl ToBech32 for ChannelId {

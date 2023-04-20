@@ -7,6 +7,15 @@
 
 #![allow(missing_docs)]
 
+#[cfg(not(feature = "std"))]
+use alloc::{
+    string::{self, String, ToString},
+    vec,
+    vec::Vec,
+};
+#[cfg(feature = "std")]
+use std::string;
+
 use bech32::{self, FromBase32, ToBase32, Variant};
 use bitcoin_hashes::Hash;
 use secp256k1::{SecretKey, XOnlyPublicKey};
@@ -35,8 +44,8 @@ pub enum Error {
     #[error("wrong prefix or variant")]
     WrongPrefixOrVariant,
     /// Bech32 error.
-    #[error(transparent)]
-    Bech32(#[from] bech32::Error),
+    #[error("Bech32 Error: {0}")]
+    Bech32(bech32::Error),
     /// Field missing
     #[error("field missing: {0}")]
     FieldMissing(String),
@@ -45,20 +54,37 @@ pub enum Error {
     TLV,
     /// UFT-8 error
     #[error(transparent)]
-    UTF8(#[from] std::string::FromUtf8Error),
+    UTF8(#[from] string::FromUtf8Error),
     /// From slice error
     #[error("impossible to perform conversion from slice")]
     TryFromSlice,
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Hash error
-    #[error(transparent)]
-    Hash(#[from] bitcoin_hashes::Error),
+    #[error("Hash Error: {0}")]
+    Hash(bitcoin_hashes::Error),
     /// EventId error
 
     #[error(transparent)]
     EventId(#[from] id::Error),
+}
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
+}
+
+impl From<bitcoin_hashes::Error> for Error {
+    fn from(error: bitcoin_hashes::Error) -> Self {
+        Self::Hash(error)
+    }
+}
+
+impl From<bech32::Error> for Error {
+    fn from(error: bech32::Error) -> Self {
+        Self::Bech32(error)
+    }
 }
 
 pub trait FromBech32: Sized {

@@ -4,11 +4,20 @@
 
 //! Event
 
+#[cfg(feature = "std")]
 use std::str::FromStr;
 
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{
+    str::FromStr,
+    string::{String, ToString},
+    vec::Vec,
+};
+
 use secp256k1::schnorr::Signature;
-use secp256k1::{Message, XOnlyPublicKey};
+use secp256k1::{Message, Secp256k1, Verification, XOnlyPublicKey};
 use serde::{Deserialize, Serialize};
+
 use serde_json::Value;
 
 pub mod builder;
@@ -22,7 +31,9 @@ pub use self::id::EventId;
 pub use self::kind::Kind;
 pub use self::tag::{Marker, Tag, TagKind};
 pub use self::unsigned::UnsignedEvent;
-use crate::{Timestamp, SECP256K1};
+use crate::Timestamp;
+#[cfg(feature = "std")]
+use crate::SECP256K1;
 
 /// [`Event`] error
 #[derive(Debug, thiserror::Error)]
@@ -31,18 +42,36 @@ pub enum Error {
     #[error("invalid signature")]
     InvalidSignature,
     /// Error serializing or deserializing JSON data
-    #[error(transparent)]
-    Json(#[from] serde_json::Error),
+    #[error("Serde json Error: {0}")]
+    Json(serde_json::Error),
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Hex decoding error
-    #[error(transparent)]
-    Hex(#[from] bitcoin_hashes::hex::Error),
+    #[error("Hex Error: {0}")]
+    Hex(bitcoin_hashes::hex::Error),
     /// OpenTimestamps error
     #[cfg(feature = "nip03")]
     #[error(transparent)]
     OpenTimestamps(#[from] nostr_ots::Error),
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
+    }
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
+}
+
+impl From<bitcoin_hashes::hex::Error> for Error {
+    fn from(error: bitcoin_hashes::hex::Error) -> Self {
+        Self::Hex(error)
+    }
 }
 
 /// [`Event`] struct
@@ -69,8 +98,14 @@ pub struct Event {
 }
 
 impl Event {
-    /// Verify event
+    /// Verify Event
+    #[cfg(feature = "std")]
     pub fn verify(&self) -> Result<(), Error> {
+        self.verify_with_context(SECP256K1)
+    }
+
+    /// Verify Event
+    pub fn verify_with_context<C: Verification>(&self, secp: &Secp256k1<C>) -> Result<(), Error> {
         let id = EventId::new(
             &self.pubkey,
             self.created_at,
@@ -79,15 +114,13 @@ impl Event {
             &self.content,
         );
         let message = Message::from_slice(id.as_bytes())?;
-        SECP256K1
-            .verify_schnorr(&self.sig, &message, &self.pubkey)
+        secp.verify_schnorr(&self.sig, &message, &self.pubkey)
             .map_err(|_| Error::InvalidSignature)
     }
 
     /// New event from [`Value`]
     pub fn from_value(value: Value) -> Result<Self, Error> {
         let event: Self = serde_json::from_value(value)?;
-        event.verify()?;
         Ok(event)
     }
 
@@ -97,7 +130,6 @@ impl Event {
         S: Into<String>,
     {
         let event: Self = serde_json::from_str(&json.into())?;
-        event.verify()?;
         Ok(event)
     }
 
@@ -143,8 +175,6 @@ impl Event {
             #[cfg(feature = "nip03")]
             ots: None,
         };
-
-        event.verify()?;
 
         Ok(event)
     }

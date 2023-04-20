@@ -4,9 +4,20 @@
 //! NIP26
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/26.md>
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{
+    fmt, format,
+    str::FromStr,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
-use std::fmt;
-use std::str::FromStr;
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use core::num;
+
+#[cfg(feature = "std")]
+use std::{fmt, num, str::FromStr};
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;
@@ -18,7 +29,12 @@ use serde_json::{json, Value};
 
 use crate::event::Event;
 use crate::key::{self, Keys};
+
+#[cfg(feature = "std")]
 use crate::SECP256K1;
+
+#[cfg(not(feature = "std"))]
+use secp256k1::{Secp256k1, Signing, Verification};
 
 const DELEGATION_KEYWORD: &str = "delegation";
 
@@ -29,20 +45,26 @@ pub enum Error {
     #[error(transparent)]
     Key(#[from] key::Error),
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Invalid condition in conditions string
     #[error("Invalid condition in conditions string")]
     ConditionsParseInvalidCondition,
     /// Invalid condition, cannot parse expected number
     #[error("Invalid condition, cannot parse expected number")]
-    ConditionsParseNumeric(#[from] std::num::ParseIntError),
+    ConditionsParseNumeric(#[from] num::ParseIntError),
     /// Conditions not satisfied
     #[error("Conditions not satisfied")]
     ConditionsValidation(#[from] ValidationError),
     /// Delegation tag parse error
     #[error("Delegation tag parse error")]
     DelegationTagParse,
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
 }
 
 /// Tag validation errors
@@ -64,6 +86,7 @@ pub enum ValidationError {
 
 /// Sign delegation.
 /// See `create_delegation_tag` for more complete functionality.
+#[cfg(feature = "std")]
 pub fn sign_delegation(
     delegator_keys: &Keys,
     delegatee_pk: XOnlyPublicKey,
@@ -75,7 +98,23 @@ pub fn sign_delegation(
     Ok(delegator_keys.sign_schnorr(&message)?)
 }
 
+/// Sign delegation.
+/// See `create_delegation_tag` for more complete functionality.
+#[cfg(not(feature = "std"))]
+pub fn sign_delegation_with_signer<C: Signing>(
+    delegator_keys: &Keys,
+    delegatee_pk: XOnlyPublicKey,
+    conditions: Conditions,
+    secp: &Secp256k1<C>,
+) -> Result<Signature, Error> {
+    let unhashed_token = DelegationToken::new(delegatee_pk, conditions);
+    let hashed_token = Sha256Hash::hash(unhashed_token.as_bytes());
+    let message = Message::from_slice(&hashed_token)?;
+    Ok(delegator_keys.sign_schnorr_with_secp(&message, secp)?)
+}
+
 /// Verify delegation signature
+#[cfg(feature = "std")]
 pub fn verify_delegation_signature(
     delegator_public_key: XOnlyPublicKey,
     signature: Signature,
@@ -86,6 +125,22 @@ pub fn verify_delegation_signature(
     let hashed_token = Sha256Hash::hash(unhashed_token.as_bytes());
     let message = Message::from_slice(hashed_token.as_byte_array())?;
     SECP256K1.verify_schnorr(&signature, &message, &delegator_public_key)?;
+    Ok(())
+}
+
+/// Verify delegation signature
+#[cfg(not(feature = "std"))]
+pub fn verify_delegation_signature<C: Verification>(
+    delegator_public_key: XOnlyPublicKey,
+    signature: Signature,
+    delegatee_public_key: XOnlyPublicKey,
+    conditions: Conditions,
+    secp: &Secp256k1<C>,
+) -> Result<(), Error> {
+    let unhashed_token = DelegationToken::new(delegatee_public_key, conditions);
+    let hashed_token = Sha256Hash::hash(unhashed_token.as_bytes());
+    let message = Message::from_slice(&hashed_token)?;
+    secp.verify_schnorr(&signature, &message, &delegator_public_key)?;
     Ok(())
 }
 
@@ -124,12 +179,35 @@ pub struct DelegationTag {
 impl DelegationTag {
     /// Create a delegation tag (including the signature).
     /// See also validate().
+    #[cfg(feature = "std")]
     pub fn new(
         delegator_keys: &Keys,
         delegatee_pubkey: XOnlyPublicKey,
         conditions: Conditions,
     ) -> Result<Self, Error> {
         let signature = sign_delegation(delegator_keys, delegatee_pubkey, conditions.clone())?;
+        Ok(Self {
+            delegator_pubkey: delegator_keys.public_key(),
+            conditions,
+            signature,
+        })
+    }
+
+    /// Create a delegation tag (including the signature).
+    /// See also validate().
+    #[cfg(not(feature = "std"))]
+    pub fn new<C: Signing>(
+        delegator_keys: &Keys,
+        delegatee_pubkey: XOnlyPublicKey,
+        conditions: Conditions,
+        signer: Secp256k1<C>,
+    ) -> Result<Self, Error> {
+        let signature = sign_delegation_with_signer(
+            delegator_keys,
+            delegatee_pubkey,
+            conditions.clone(),
+            &signer,
+        )?;
         Ok(Self {
             delegator_pubkey: delegator_keys.public_key(),
             conditions,
@@ -153,6 +231,7 @@ impl DelegationTag {
     }
 
     /// Validate a delegation tag, check signature and conditions.
+    #[cfg(feature = "std")]
     pub fn validate(
         &self,
         delegatee_pubkey: XOnlyPublicKey,
@@ -164,6 +243,30 @@ impl DelegationTag {
             self.signature,
             delegatee_pubkey,
             self.conditions.clone(),
+        )
+        .map_err(|_| Error::ConditionsValidation(ValidationError::InvalidSignature))?;
+
+        // validate conditions
+        self.conditions.evaluate(event_properties)?;
+
+        Ok(())
+    }
+    /// Validate a delegation tag, check signature and conditions.
+    #[cfg(not(feature = "std"))]
+    pub fn validate<C: Verification>(
+        &self,
+        delegatee_pubkey: XOnlyPublicKey,
+        event_properties: &EventProperties,
+        secp: &Secp256k1<C>,
+    ) -> Result<(), Error> {
+        // verify signature
+
+        verify_delegation_signature(
+            self.delegator_pubkey,
+            self.signature,
+            delegatee_pubkey,
+            self.conditions.clone(),
+            secp,
         )
         .map_err(|_| Error::ConditionsValidation(ValidationError::InvalidSignature))?;
 

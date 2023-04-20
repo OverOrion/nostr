@@ -2,6 +2,9 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/65.md>
 
+#[cfg(feature = "alloc")]
+use alloc::{string::String, vec::Vec};
+
 use crate::Event;
 
 /// Extracts the relay info (url, optional read/write flag) from the event

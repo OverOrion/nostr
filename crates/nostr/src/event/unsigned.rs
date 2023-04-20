@@ -3,11 +3,24 @@
 
 //! Unsigned Event
 
+#[cfg(feature = "alloc")]
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
+
 use secp256k1::schnorr::Signature;
-use secp256k1::{Message, XOnlyPublicKey};
+use secp256k1::XOnlyPublicKey;
+
+#[cfg(feature = "std")]
+use secp256k1::Message;
+
+use crate::{Event, EventId, Kind, Tag, Timestamp};
+
 use serde::{Deserialize, Serialize};
 
-use crate::{Event, EventId, Keys, Kind, Tag, Timestamp};
+#[cfg(feature = "std")]
+use crate::Keys;
 
 /// [`UnsignedEvent`] error
 #[derive(Debug, thiserror::Error)]
@@ -16,14 +29,26 @@ pub enum Error {
     #[error(transparent)]
     Key(#[from] crate::key::Error),
     /// Error serializing or deserializing JSON data
-    #[error(transparent)]
-    Json(#[from] serde_json::Error),
+    #[error("Serde json Error: {0}")]
+    Json(serde_json::Error),
     /// Secp256k1 error
-    #[error(transparent)]
-    Secp256k1(#[from] secp256k1::Error),
+    #[error("Secp256k1 Error: {0}")]
+    Secp256k1(secp256k1::Error),
     /// Event error
     #[error(transparent)]
     Event(#[from] super::Error),
+}
+
+impl From<secp256k1::Error> for Error {
+    fn from(error: secp256k1::Error) -> Self {
+        Self::Secp256k1(error)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
+    }
 }
 
 /// [`UnsignedEvent`] struct
@@ -45,6 +70,7 @@ pub struct UnsignedEvent {
 
 impl UnsignedEvent {
     /// Sign an [`UnsignedEvent`]
+    #[cfg(feature = "std")]
     pub fn sign(self, keys: &Keys) -> Result<Event, Error> {
         let message = Message::from_slice(self.id.as_bytes())?;
         Ok(Event {
@@ -60,7 +86,24 @@ impl UnsignedEvent {
         })
     }
 
+    /// Sign an [`UnsignedEvent`] with specified signature
+    #[cfg(not(feature = "std"))]
+    pub fn sign_with_signature(self, sig: Signature) -> Result<Event, Error> {
+        Ok(Event {
+            id: self.id,
+            pubkey: self.pubkey,
+            created_at: self.created_at,
+            kind: self.kind,
+            tags: self.tags,
+            content: self.content,
+            sig,
+            #[cfg(feature = "nip03")]
+            ots: None,
+        })
+    }
+
     /// Add signature to [`UnsignedEvent`]
+    #[cfg(feature = "std")]
     pub fn add_signature(self, sig: Signature) -> Result<Event, Error> {
         let event = Event {
             id: self.id,
