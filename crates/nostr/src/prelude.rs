@@ -8,7 +8,7 @@
 pub use bech32;
 #[cfg(feature = "nip06")]
 pub use bip39::*;
-pub use secp256k1::*;
+pub use secp256k1;
 pub use url::*;
 
 // Internal modules
