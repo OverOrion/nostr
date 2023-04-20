@@ -5,6 +5,7 @@
 #[cfg(feature = "alloc")]
 use alloc::{
     string::{String, ToString},
+    vec,
     vec::Vec,
 };
 
@@ -84,6 +85,12 @@ impl EventBuilder {
     #[cfg(feature = "std")]
     pub fn to_event(self, keys: &Keys) -> Result<Event, Error> {
         let pubkey: XOnlyPublicKey = keys.public_key();
+        Ok(self.to_unsigned_event(pubkey).sign(keys)?)
+    }
+
+    /// Build [`UnsignedEvent`]
+    #[cfg(feature = "std")]
+    pub fn to_unsigned_event(self, pubkey: XOnlyPublicKey) -> UnsignedEvent {
         let created_at: Timestamp = Timestamp::now();
         let id = EventId::new(&pubkey, created_at, &self.kind, &self.tags, &self.content);
         let message = Message::from_slice(id.as_bytes())?;
@@ -109,12 +116,23 @@ impl EventBuilder {
             kind: self.kind,
             tags: self.tags,
             content: self.content,
-        }
+            sig,
+        })
     }
 
     /// Build POW [`Event`]
     #[cfg(feature = "std")]
     pub fn to_pow_event(self, keys: &Keys, difficulty: u8) -> Result<Event, Error> {
+<<<<<<< HEAD
+=======
+        let pubkey: XOnlyPublicKey = keys.public_key();
+        Ok(self.to_unsigned_pow_event(pubkey, difficulty).sign(keys)?)
+    }
+
+    /// Build unsigned POW [`Event`]
+    #[cfg(feature = "std")]
+    pub fn to_unsigned_pow_event(self, pubkey: XOnlyPublicKey, difficulty: u8) -> UnsignedEvent {
+>>>>>>> 1c0208f (fix rebase issues)
         #[cfg(target_arch = "wasm32")]
         use instant::Instant;
         #[cfg(all(feature = "std", not(target_arch = "wasm32")))]
@@ -123,7 +141,9 @@ impl EventBuilder {
         let now = Instant::now();
 
         use secp256k1::SECP256K1;
-        self.to_pow_event_with_time_supplier_with_secp::<Instant, _>(keys, difficulty, &now, SECP256K1)
+        self.to_pow_event_with_time_supplier_with_secp::<Instant, _>(
+            keys, difficulty, &now, SECP256K1,
+        )
     }
 
     /// Build POW [`Event`] using the given time supplier
@@ -196,7 +216,10 @@ impl EventBuilder {
                 #[cfg(all(feature = "std", not(feature = "alloc")))]
                 let sig = keys.sign_schnorr(&message)?;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1c0208f (fix rebase issues)
                 return self.to_event_internal(keys, created_at, id, sig);
             }
 
