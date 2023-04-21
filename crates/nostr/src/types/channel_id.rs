@@ -10,6 +10,9 @@ use alloc::{
 };
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
+use core::str::FromStr;
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::fmt;
 #[cfg(feature = "std")]
 use std::fmt;
