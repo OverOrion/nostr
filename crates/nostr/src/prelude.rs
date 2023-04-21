@@ -12,15 +12,15 @@ pub use secp256k1;
 pub use url::*;
 
 // Internal modules
-pub use crate::event::builder::*;
-pub use crate::event::id::*;
-pub use crate::event::kind::*;
-pub use crate::event::tag::*;
-pub use crate::event::unsigned::*;
-pub use crate::event::*;
-pub use crate::key::*;
-pub use crate::message::*;
-pub use crate::types::*;
+pub use crate::event;
+pub use crate::event::builder;
+pub use crate::event::id;
+pub use crate::event::kind;
+pub use crate::event::tag;
+pub use crate::event::unsigned;
+pub use crate::key;
+pub use crate::message;
+pub use crate::types;
 pub use crate::Result;
 
 #[cfg(feature = "std")]
