@@ -10,9 +10,9 @@ members = [
     "crates/nostr-sdk",
     "crates/nostr-sdk-net",
     "crates/nostr-sdk-sqlite",
-    "crates/ensure_no_std"
+    "crates/ensure_no_std",
 ]
-default-members = ["crates/*"]
+default-members = ["crates/nostr*"]
 resolver = "2"
 
 [workspace.package]

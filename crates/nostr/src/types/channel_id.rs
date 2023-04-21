@@ -8,8 +8,6 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-
-#[cfg(all(feature = "alloc", not(feature = "std")))]
 use core::str::FromStr;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]

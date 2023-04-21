@@ -125,6 +125,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
+    /// use nostr::Keys;
     ///
     /// let my_keys = Keys::generate();
     /// let client = Client::new(&my_keys);
@@ -138,6 +139,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
+    /// use nostr::Keys;
     ///
     /// let my_keys = Keys::generate();
     /// let opts = Options::new().wait_for_send(true);
@@ -283,6 +285,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
+    /// use nostr::Keys;
     ///
     /// # #[tokio::main]
     /// # async fn main() {
@@ -321,6 +324,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
+    /// use nostr::Keys;
     ///
     /// # #[tokio::main]
     /// # async fn main() {
@@ -366,7 +370,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -418,6 +422,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
+    /// use nostr::Keys;
     ///
     /// # #[tokio::main]
     /// # async fn main() {
@@ -448,6 +453,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
+    /// use nostr::Keys;
     ///
     /// # #[tokio::main]
     /// # async fn main() {
@@ -476,7 +482,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -493,7 +499,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -510,7 +516,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -540,7 +546,7 @@ impl Client {
     /// use std::time::Duration;
     ///
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -671,7 +677,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -698,7 +704,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -724,7 +730,7 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -789,7 +795,7 @@ impl Client {
     /// use std::time::Duration;
     ///
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -887,7 +893,9 @@ impl Client {
     /// # Example
     /// ```rust,no_run
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr_sdk::key::XOnlyPublicKey;
+    /// use nostr_sdk::prelude::nip19::FromBech32;
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -974,7 +982,8 @@ impl Client {
     /// use std::str::FromStr;
     ///
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr_sdk::key::XOnlyPublicKey;
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -1008,7 +1017,8 @@ impl Client {
     /// use std::str::FromStr;
     ///
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr_sdk::key::XOnlyPublicKey;
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
@@ -1042,7 +1052,8 @@ impl Client {
     /// use std::str::FromStr;
     ///
     /// use nostr_sdk::prelude::*;
-    ///
+    /// use nostr_sdk::key::XOnlyPublicKey;
+    /// use nostr::Keys;
     /// # #[tokio::main]
     /// # async fn main() {
     /// #   let my_keys = Keys::generate();
