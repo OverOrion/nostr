@@ -34,6 +34,7 @@ pub enum Error {
     #[error(transparent)]
     Key(#[from] key::Error),
     /// Secp256k1 error
+
     #[error("Secp256k1 Error: {0}")]
     Secp256k1(secp256k1::Error),
     /// JSON error
@@ -109,7 +110,22 @@ impl EventBuilder {
     ) -> Result<Event, Error> {
         let pubkey: XOnlyPublicKey = keys.public_key();
         let id = EventId::new(&pubkey, created_at, &self.kind, &self.tags, &self.content);
-        UnsignedEvent {
+        let message = Message::from_slice(id.as_bytes())?;
+        let signature = keys.sign_schnorr_with_secp(&message, secp)?;
+
+        Self::to_event_internal(self, keys, created_at, id, signature)
+    }
+
+    fn to_event_internal(
+        self,
+        keys: &Keys,
+        created_at: Timestamp,
+        id: EventId,
+        sig: Signature,
+    ) -> Result<Event, Error> {
+        let pubkey: XOnlyPublicKey = keys.public_key();
+
+        Ok(Event {
             id,
             pubkey,
             created_at,
@@ -123,8 +139,6 @@ impl EventBuilder {
     /// Build POW [`Event`]
     #[cfg(feature = "std")]
     pub fn to_pow_event(self, keys: &Keys, difficulty: u8) -> Result<Event, Error> {
-<<<<<<< HEAD
-=======
         let pubkey: XOnlyPublicKey = keys.public_key();
         Ok(self.to_unsigned_pow_event(pubkey, difficulty).sign(keys)?)
     }
@@ -132,7 +146,6 @@ impl EventBuilder {
     /// Build unsigned POW [`Event`]
     #[cfg(feature = "std")]
     pub fn to_unsigned_pow_event(self, pubkey: XOnlyPublicKey, difficulty: u8) -> UnsignedEvent {
->>>>>>> 1c0208f (fix rebase issues)
         #[cfg(target_arch = "wasm32")]
         use instant::Instant;
         #[cfg(all(feature = "std", not(target_arch = "wasm32")))]
@@ -178,8 +191,6 @@ impl EventBuilder {
         #[cfg(all(feature = "alloc", not(feature = "std")))]
         use core::cmp;
 
-    /// Build unsigned POW [`Event`]
-    pub fn to_unsigned_pow_event(self, pubkey: XOnlyPublicKey, difficulty: u8) -> UnsignedEvent {
         let mut nonce: u128 = 0;
         let mut tags: Vec<Tag> = self.tags.clone();
 
@@ -216,10 +227,6 @@ impl EventBuilder {
                 #[cfg(all(feature = "std", not(feature = "alloc")))]
                 let sig = keys.sign_schnorr(&message)?;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 1c0208f (fix rebase issues)
                 return self.to_event_internal(keys, created_at, id, sig);
             }
 
@@ -270,6 +277,7 @@ impl EventBuilder {
     ///
     /// # Example
     /// ```rust,no_run
+    /// use nostr::url::Url;
     /// use nostr::{EventBuilder, Metadata};
     ///
     /// let metadata = Metadata::new()
