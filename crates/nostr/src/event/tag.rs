@@ -523,12 +523,14 @@ where
                     let image = tag[1];
                     let dimensions: Vec<&str> = tag[2].split('x').collect();
                     if dimensions.len() == 2 {
-                        let (width, height) = dimensions[0..2];
+                        let (width, height) = (dimensions[0], dimensions[1]);
                         Ok(Self::ImageWithDimensions(
                             image,
                             width.parse()?,
                             height.parse()?,
                         ))
+                    } else {
+                        Err(Error::InvalidLength)
                     }
                 }
                 TagKind::ThumbWithDimensions => {
