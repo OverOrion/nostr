@@ -151,3 +151,88 @@ impl BadgeAward {
         Ok(BadgeAward(event))
     }
 }
+
+///  Profile Badges event as specified in NIP-58
+pub struct ProfileBadgesEvent(Event);
+
+/// [`ProfileBadgesEvent`] errors
+#[derive(Debug, thiserror::Error)]
+pub enum ProfileBadgesEventError {
+    /// Invalid length
+    #[error("invalid length")]
+    InvalidLength,
+    /// Invalid kind
+    #[error("invalid kind")]
+    InvalidKind,
+    /// Mismatched badge definition or award
+    #[error("mismatched badge definition/award")]
+    MismatchedBadgeDefinitionOrAward,
+    /// Event builder Error
+    #[error(transparent)]
+    EventBuilder(#[from] crate::event::builder::Error),
+}
+
+impl ProfileBadgesEvent {
+    /// Helper function to filter tags for a specific [`Kind`]
+    fn filter_for_kind(tags: Vec<Tag>, kind_needed: &Kind) -> Vec<Tag> {
+        tags.into_iter()
+            .filter(|e| match e {
+                Tag::A { kind, .. } => kind == kind_needed,
+                _ => false,
+            })
+            .collect()
+    }
+
+    /// Create a new [`ProfileBadgesEvent`] from badge definition and awards tags.
+    /// [`badge_definitions`] and [`badge_awards`] must be ordered, so on the same position they refer to the same badge
+    pub fn new(
+        badge_definitions: Vec<Tag>,
+        badge_awards: Vec<Tag>,
+        keys: &Keys,
+    ) -> Result<ProfileBadgesEvent, ProfileBadgesEventError> {
+        if badge_definitions.len() != badge_awards.len() {
+            return Err(ProfileBadgesEventError::InvalidLength);
+        }
+
+        let badge_awards = ProfileBadgesEvent::filter_for_kind(badge_awards, &Kind::BadgeAward);
+        if badge_awards.is_empty() {
+            return Err(ProfileBadgesEventError::InvalidKind);
+        }
+
+        let badge_definitions =
+            ProfileBadgesEvent::filter_for_kind(badge_definitions, &Kind::BadgeDefinition);
+        if badge_definitions.is_empty() {
+            return Err(ProfileBadgesEventError::InvalidKind);
+        }
+
+        // Add identifier `d` tag
+        let id_tag = Tag::Identifier("profile_badges".to_owned());
+        let mut tags: Vec<Tag> = vec![id_tag];
+
+        // This collection has been filtered for the needed tags
+        let users_badges = core::iter::zip(badge_definitions, badge_awards);
+        for (badge_definition, badge_award) in users_badges {
+            match (&badge_definition, &badge_award) {
+                (Tag::A { ref identifier, .. }, Tag::Identifier(ref badge_id))
+                    if badge_id != identifier =>
+                {
+                    return Err(ProfileBadgesEventError::MismatchedBadgeDefinitionOrAward);
+                }
+                (Tag::A { identifier, .. }, Tag::Identifier(badge_id))
+                    if badge_id == identifier =>
+                {
+                    tags.push(badge_award);
+                    tags.push(badge_definition);
+                }
+                _ => {}
+            }
+        }
+
+        // Badge definitions and awards have been validated
+
+        let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
+        let event = event_builder.to_event(keys)?;
+
+        Ok(ProfileBadgesEvent(event))
+    }
+}
