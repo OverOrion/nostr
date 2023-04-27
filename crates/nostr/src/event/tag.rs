@@ -504,12 +504,14 @@ where
                     let thumb = tag[1];
                     let dimensions: Vec<&str> = tag[2].split('x').collect();
                     if dimensions.len() == 2 {
-                        let (width, height) = dimensions[0..2];
+                        let (width, height) = (dimensions[0], dimensions[1]);
                         Ok(Self::ThumbWithDimensions(
                             thumb,
                             width.parse()?,
                             height.parse()?,
                         ))
+                    } else {
+                        Err(Error::InvalidLength)
                     }
                 }
                 _ => Ok(Self::Generic(tag_kind, tag[1..].to_vec())),
@@ -637,7 +639,7 @@ impl From<Tag> for Vec<String> {
             ],
             Tag::Thumb(thumb) => vec![TagKind::Thumb.to_string(), thumb],
             Tag::ThumbWithDimensions(thumb, width, height) => vec![
-                TagKind::ThumbWithDimensions,
+                TagKind::ThumbWithDimensions.to_string(),
                 thumb,
                 format!("{}x{}", height, width),
             ],
