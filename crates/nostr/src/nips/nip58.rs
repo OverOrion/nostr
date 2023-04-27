@@ -2,7 +2,18 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/58.md>
 
-use crate::{event::builder::Error, Event, EventBuilder, Keys, Kind, Tag};
+use crate::{event::builder::Error as BuilderError, Event, EventBuilder, Keys, Kind, Tag};
+
+#[derive(Debug, thiserror::Error)]
+/// [`BadgeAward`] error
+pub enum Error {
+    /// Invalid kind
+    #[error("invalid kind")]
+    InvalidKind,
+    /// Event builder Error
+    #[error(transparent)]
+    Event(#[from] crate::event::builder::Error),
+}
 
 /// Simple struct to hold `width` x `height.
 pub struct ImageDimensions(u64, u64);
@@ -61,7 +72,7 @@ impl BadgeDefinitionBuilder {
     }
 
     /// Build [`Event`]
-    pub fn build(self, keys: &Keys) -> Result<BadgeDefinition, Error> {
+    pub fn build(self, keys: &Keys) -> Result<BadgeDefinition, BuilderError> {
         let mut tags: Vec<Tag> = vec![];
         let badge_id = Tag::Identifier(self.badge_id);
         tags.push(badge_id);
@@ -106,3 +117,37 @@ impl BadgeDefinitionBuilder {
 
 /// Badge definition event as specified in NIP-58
 pub struct BadgeDefinition(Event);
+
+/// Badge award event as specified in NIP-58
+pub struct BadgeAward(Event);
+
+impl BadgeAward {
+    ///
+    pub fn new(badge: Tag, awarded_pub_keys: Vec<Tag>, keys: &Keys) -> Result<BadgeAward, Error> {
+        match badge {
+            Tag::A { kind, .. } => {
+                if kind != Kind::BadgeDefinition {
+                    return Err(Error::InvalidKind);
+                }
+            }
+            _ => return Err(Error::InvalidKind),
+        };
+
+        let awarded_pub_keys: Vec<Tag> = awarded_pub_keys
+            .into_iter()
+            .filter(|e| matches!(e, Tag::PubKey(..)))
+            .collect();
+
+        if awarded_pub_keys.is_empty() {
+            return Err(Error::InvalidKind);
+        }
+
+        let mut tags = vec![badge];
+        tags.extend(awarded_pub_keys);
+
+        let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
+        let event = event_builder.to_event(keys)?;
+
+        Ok(BadgeAward(event))
+    }
+}
