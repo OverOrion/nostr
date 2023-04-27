@@ -218,7 +218,7 @@ impl fmt::Display for TagKind {
             Self::Challenge => write!(f, "challenge"),
             Self::Title => write!(f, "title"),
             Self::Image => write!(f, "image"),
-            Self::ImageWithDimensions => write(f, "image"),
+            Self::ImageWithDimensions => write!(f, "image"),
             Self::Thumb => write(f, "thumb"),
             Self::ThumbWithDimensions => write(f, "thumb"),
             Self::Summary => write!(f, "summary"),
