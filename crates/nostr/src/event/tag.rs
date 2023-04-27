@@ -194,6 +194,7 @@ pub enum TagKind {
     Amount,
     /// Lnurl (NIP57)
     Lnurl,
+    /// Name tag
     Name,
     /// Custom tag kind
     Custom(String),
