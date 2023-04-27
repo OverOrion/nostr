@@ -171,6 +171,8 @@ pub enum TagKind {
     Title,
     /// Image (NIP23)
     Image,
+    /// Image with dimensions
+    ImageWithDimensions,
     /// Summary (NIP23)
     Summary,
     /// PublishedAt (NIP23)
@@ -211,6 +213,7 @@ impl fmt::Display for TagKind {
             Self::Challenge => write!(f, "challenge"),
             Self::Title => write!(f, "title"),
             Self::Image => write!(f, "image"),
+            Self::ImageWithDimensions => write(f, "image"),
             Self::Summary => write!(f, "summary"),
             Self::PublishedAt => write!(f, "published_at"),
             Self::Description => write!(f, "description"),
@@ -303,7 +306,8 @@ pub enum Tag {
     Subject(String),
     Challenge(String),
     Title(String),
-    Image(String, Option<(u64, u64)>),
+    Image(String),
+    ImageWithDimensions(String, u64, u64),
     Summary(String),
     Description(String),
     Bolt11(String),
@@ -353,6 +357,7 @@ impl Tag {
             Tag::Challenge(..) => TagKind::Challenge,
             Tag::Title(..) => TagKind::Title,
             Tag::Image(..) => TagKind::Image,
+            Tag::ImageWithDimensions(..) => TagKind::ImageWithDimensions,
             Tag::Summary(..) => TagKind::Summary,
             Tag::PublishedAt(..) => TagKind::PublishedAt,
             Tag::Description(..) => TagKind::Description,
@@ -467,6 +472,18 @@ where
                         })
                     } else {
                         Err(Error::InvalidLength)
+                    }
+                }
+                TagKind::ImageWithDimensions => {
+                    let image = tag[1];
+                    let dimensions = tag[2].split('x').collect();
+                    if dimensions.len == 2 {
+                        let (width, height) = dimensions[0..2];
+                        Ok(Self::ImageWithDimensions(
+                            image,
+                            width.parse()?,
+                            height.parse()?,
+                        ))
                     }
                 }
                 _ => Ok(Self::Generic(tag_kind, tag[1..].to_vec())),
@@ -587,6 +604,11 @@ impl From<Tag> for Vec<String> {
             Tag::Challenge(challenge) => vec![TagKind::Challenge.to_string(), challenge],
             Tag::Title(title) => vec![TagKind::Title.to_string(), title],
             Tag::Image(image) => vec![TagKind::Image.to_string(), image],
+            Tag::ImageWithDimensions(image, width, height) => vec![
+                TagKind::ImageWithDimensions,
+                image,
+                format!("{}x{}", height, width),
+            ],
             Tag::Summary(summary) => vec![TagKind::Summary.to_string(), summary],
             Tag::PublishedAt(timestamp) => {
                 vec![TagKind::PublishedAt.to_string(), timestamp.to_string()]
