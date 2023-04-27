@@ -501,7 +501,7 @@ where
                     }
                 }
                 TagKind::ThumbWithDimensions => {
-                    let thumb = tag[1];
+                    let thumb = tag[1].clone();
                     let dimensions: Vec<&str> = tag[2].split('x').collect();
                     if dimensions.len() == 2 {
                         let (width, height) = (dimensions[0], dimensions[1]);
