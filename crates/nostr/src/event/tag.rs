@@ -188,6 +188,7 @@ pub enum TagKind {
     Amount,
     /// Lnurl (NIP57)
     Lnurl,
+    Name,
     /// Custom tag kind
     Custom(String),
 }
@@ -219,6 +220,7 @@ impl fmt::Display for TagKind {
             Self::Relays => write!(f, "relays"),
             Self::Amount => write!(f, "amount"),
             Self::Lnurl => write!(f, "lnurl"),
+            Self::Name => write!(f, "name"),
             Self::Custom(tag) => write!(f, "{tag}"),
         }
     }
@@ -255,6 +257,7 @@ where
             "relays" => Self::Relays,
             "amount" => Self::Amount,
             "lnurl" => Self::Lnurl,
+            "name" => Self::Name,
             tag => Self::Custom(tag.to_string()),
         }
     }
@@ -334,7 +337,7 @@ pub enum Tag {
     Subject(String),
     Challenge(String),
     Title(String),
-    Image(String),
+    Image(String, Option<(u64, u64)>),
     Summary(String),
     Description(String),
     Bolt11(String),
@@ -342,6 +345,7 @@ pub enum Tag {
     Relays(Vec<UncheckedUrl>),
     Amount(u64),
     Lnurl(String),
+    Name(String),
     PublishedAt(Timestamp),
 }
 
@@ -390,6 +394,7 @@ impl Tag {
             Tag::Preimage(..) => TagKind::Preimage,
             Tag::Relays(..) => TagKind::Relays,
             Tag::Amount(..) => TagKind::Amount,
+            Tag::Name(..) => TagKind::Name,
             Tag::Lnurl(..) => TagKind::Lnurl,
         }
     }
@@ -449,6 +454,7 @@ where
                 TagKind::Preimage => Ok(Self::Preimage(content.to_string())),
                 TagKind::Amount => Ok(Self::Amount(content.parse()?)),
                 TagKind::Lnurl => Ok(Self::Lnurl(content.to_string())),
+                TagKind::Name => Ok(Self::Name(content.to_string())),
                 _ => Ok(Self::Generic(tag_kind, vec![content.to_string()])),
             }
         } else if tag_len == 3 {
@@ -633,6 +639,9 @@ impl From<Tag> for Vec<String> {
                 .collect::<Vec<_>>(),
             Tag::Amount(amount) => {
                 vec![TagKind::Amount.to_string(), amount.to_string()]
+            }
+            Tag::Name(name) => {
+                vec![TagKind::Name.to_string(), name]
             }
             Tag::Lnurl(lnurl) => {
                 vec![TagKind::Lnurl.to_string(), lnurl]
