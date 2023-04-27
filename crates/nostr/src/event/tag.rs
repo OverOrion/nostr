@@ -487,7 +487,7 @@ where
                     }
                 }
                 TagKind::ImageWithDimensions => {
-                    let image = tag[1];
+                    let image = tag[1].clone();
                     let dimensions: Vec<&str> = tag[2].split('x').collect();
                     if dimensions.len() == 2 {
                         let (width, height) = (dimensions[0], dimensions[1]);
