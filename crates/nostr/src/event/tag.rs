@@ -521,8 +521,8 @@ where
                 }
                 TagKind::ImageWithDimensions => {
                     let image = tag[1];
-                    let dimensions = tag[2].split('x').collect();
-                    if dimensions.len == 2 {
+                    let dimensions: Vec<&str> = tag[2].split('x').collect();
+                    if dimensions.len() == 2 {
                         let (width, height) = dimensions[0..2];
                         Ok(Self::ImageWithDimensions(
                             image,
