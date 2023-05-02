@@ -422,6 +422,8 @@ where
     fn try_from(tag: Vec<S>) -> Result<Self, Self::Error> {
         let tag: Vec<String> = tag.into_iter().map(|v| v.into()).collect();
         let tag_len: usize = tag.len();
+        print!("parsing: {:#?}", &tag);
+        println!("tag_len is : {}", tag_len);
         let tag_kind: TagKind = match tag.first() {
             Some(kind) => {
                 println!("tag_kind is : {}", &kind);
@@ -447,6 +449,9 @@ where
             }
         } else if tag_len == 2 {
             let content: &str = &tag[1];
+            println!("content is : {}", &content);
+            println!("tag_kind is : {}", &tag_kind);
+
             match tag_kind {
                 TagKind::A => {
                     let kpi: Vec<&str> = tag[1].split(':').collect();
