@@ -290,7 +290,7 @@ pub enum Tag {
         kind: Kind,
         public_key: XOnlyPublicKey,
         identifier: String,
-        relay_url: UncheckedUrl,
+        relay_url: Option<UncheckedUrl>,
     },
     Relay(UncheckedUrl),
     ContactList {
@@ -389,7 +389,10 @@ where
         let tag: Vec<String> = tag.into_iter().map(|v| v.into()).collect();
         let tag_len: usize = tag.len();
         let tag_kind: TagKind = match tag.first() {
-            Some(kind) => TagKind::from(kind),
+            Some(kind) => {
+                println!("tag_kind is : {}", &kind);
+                TagKind::from(kind)
+            }
             None => return Err(Error::KindNotFound),
         };
 
@@ -409,6 +412,19 @@ where
         } else if tag_len == 2 {
             let content: &str = &tag[1];
             match tag_kind {
+                TagKind::A => {
+                    let kpi: Vec<&str> = tag[1].split(':').collect();
+                    if kpi.len() == 3 {
+                        Ok(Self::A {
+                            kind: Kind::from_str(kpi[0])?,
+                            public_key: XOnlyPublicKey::from_str(kpi[1])?,
+                            identifier: kpi[2].to_string(),
+                            relay_url: None,
+                        })
+                    } else {
+                        Err(Error::InvalidLength)
+                    }
+                }
                 TagKind::P => Ok(Self::PubKey(XOnlyPublicKey::from_str(content)?, None)),
                 TagKind::E => Ok(Self::Event(EventId::from_hex(content)?, None, None)),
                 TagKind::R => Ok(Self::Reference(content.to_string())),
@@ -477,7 +493,11 @@ where
                             kind: Kind::from_str(kpi[0])?,
                             public_key: XOnlyPublicKey::from_str(kpi[1])?,
                             identifier: kpi[2].to_string(),
+<<<<<<< HEAD
                             relay_url: UncheckedUrl::from(tag[2].clone()),
+=======
+                            relay_url: Some(UncheckedUrl(tag[2].clone())),
+>>>>>>> bb239c0 (nostr/nips: add test case for BadgeAward event, allow `a` tags to no lack relay URL)
                         })
                     } else {
                         Err(Error::InvalidLength)
@@ -576,11 +596,16 @@ impl From<Tag> for Vec<String> {
                 public_key,
                 identifier,
                 relay_url,
-            } => vec![
-                TagKind::A.to_string(),
-                format!("{}:{public_key}:{identifier}", kind.as_u64()),
-                relay_url.to_string(),
-            ],
+            } => {
+                let mut vec = vec![
+                    TagKind::A.to_string(),
+                    format!("{}:{public_key}:{identifier}", kind.as_u64()),
+                ];
+                if let Some(relay) = relay_url {
+                    vec.push(relay.to_string());
+                }
+                vec
+            }
             Tag::Relay(url) => vec![TagKind::Relay.to_string(), url.to_string()],
             Tag::ContactList {
                 pk,
@@ -904,7 +929,11 @@ mod tests {
                     "a695f6b60119d9521934a691347d9f78e8770b56da16bb255ee286ddf9fda919"
                 )?,
                 identifier: String::from("ipsum"),
+<<<<<<< HEAD
                 relay_url: UncheckedUrl::from("wss://relay.nostr.org")
+=======
+                relay_url: Some(UncheckedUrl::from_str("wss://relay.nostr.org")?)
+>>>>>>> bb239c0 (nostr/nips: add test case for BadgeAward event, allow `a` tags to no lack relay URL)
             }
             .as_vec()
         );
@@ -1125,7 +1154,11 @@ mod tests {
                     "a695f6b60119d9521934a691347d9f78e8770b56da16bb255ee286ddf9fda919"
                 )?,
                 identifier: String::from("ipsum"),
+<<<<<<< HEAD
                 relay_url: UncheckedUrl::from("wss://relay.nostr.org")
+=======
+                relay_url: Some(UncheckedUrl::from_str("wss://relay.nostr.org")?)
+>>>>>>> bb239c0 (nostr/nips: add test case for BadgeAward event, allow `a` tags to no lack relay URL)
             }
         );
 
