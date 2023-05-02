@@ -299,4 +299,29 @@ mod tests {
         assert_eq!(badge_award.kind, Kind::BadgeAward);
         assert_eq!(badge_award.tags, example_event.tags);
     }
+
+    #[test]
+    fn test_profile_badges() {
+        let example_event_json = r#"{ "content":"","id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "kind": 30008, "pubkey": "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8","created_at":1671739153,"tags": [ ["d", "profile_badges"],["a", "30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:bravery"],["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://nostr.academy"],["a", "30009:alice:honor"],["e", "<honor badge award event id>", "wss://nostr.academy"]] }"#;
+        let example_event: Event = serde_json::from_str(example_event_json).unwrap();
+
+        let bravery_badge = Tag::A {
+            kind: Kind::BadgeDefinition,
+            public_key: pub_key.clone(),
+            identifier: "bravery".to_owned(),
+            relay_url: None,
+        };
+        let honor_badge = Tag::A {
+            kind: Kind::BadgeDefinition,
+            public_key: pub_key.clone(),
+            identifier: "honor".to_owned(),
+            relay_url: None,
+        };
+        let badge_definitions = vec![bravery_badge, honor_badge];
+
+        let badge_awards = vec![];
+
+        let keys = Keys::generate();
+        ProfileBadgesEvent::new(badge_definitions, badge_awards, &keys);
+    }
 }
