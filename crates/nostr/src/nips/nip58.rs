@@ -2,7 +2,10 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/58.md>
 
-use crate::{event::builder::Error as BuilderError, Event, EventBuilder, Keys, Kind, Tag};
+use crate::{
+    event::{builder::Error as BuilderError, tag::UncheckedUrl},
+    Event, EventBuilder, Keys, Kind, Tag,
+};
 
 #[derive(Debug, thiserror::Error)]
 /// [`BadgeAward`] error
@@ -123,13 +126,13 @@ pub struct BadgeAward(Event);
 
 impl BadgeAward {
     ///
-    pub fn new(badge: Tag, awarded_pub_keys: Vec<Tag>, keys: &Keys) -> Result<BadgeAward, Error> {
-        match badge {
-            Tag::A { kind, .. } => {
-                if kind != Kind::BadgeDefinition {
-                    return Err(Error::InvalidKind);
-                }
-            }
+    pub fn new(
+        badge_definition: &Event,
+        awarded_pub_keys: Vec<Tag>,
+        keys: &Keys,
+    ) -> Result<BadgeAward, Error> {
+        match badge_definition.kind {
+            Kind::BadgeDefinition => (),
             _ => return Err(Error::InvalidKind),
         };
 
@@ -142,7 +145,8 @@ impl BadgeAward {
             return Err(Error::InvalidKind);
         }
 
-        let mut tags = vec![badge];
+        let mut tags = badge_definition.tags.clone();
+        dbg!(tags.clone());
         tags.extend(awarded_pub_keys);
 
         let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
@@ -173,33 +177,49 @@ pub enum ProfileBadgesEventError {
 }
 
 impl ProfileBadgesEvent {
-    /// Helper function to filter tags for a specific [`Kind`]
-    fn filter_for_kind(tags: Vec<Tag>, kind_needed: &Kind) -> Vec<Tag> {
-        tags.into_iter()
-            .filter(|e| match e {
-                Tag::A { kind, .. } => kind == kind_needed,
-                _ => false,
-            })
+    /// Helper function to filter events for a specific [`Kind`]
+    pub(crate) fn filter_for_kind(events: Vec<Event>, kind_needed: &Kind) -> Vec<Event> {
+        events
+            .into_iter()
+            .filter(|e| e.kind == *kind_needed)
             .collect()
     }
+    fn extract_identifier(tags: Vec<Tag>) -> Option<Tag> {
+        dbg!(tags.clone());
+        tags.iter()
+            .find(|tag| match tag {
+                Tag::Identifier(_) => true,
+                _ => false,
+            })
+            .cloned()
+    }
+    fn extract_relay_url(tags: Vec<Tags>) -> Option<UncheckedUrl> {
+        tags.iter()
+            .find(|tag| match tag {
+                Tag::Event(_, UncheckedUrl, ..) => uncheckedurl,
+                _ => None,
+            })
+            .cloned()
+    }
 
-    /// Create a new [`ProfileBadgesEvent`] from badge definition and awards tags.
+    /// Create a new [`ProfileBadgesEvent`] from badge definition and awards events
     /// [`badge_definitions`] and [`badge_awards`] must be ordered, so on the same position they refer to the same badge
     pub fn new(
-        badge_definitions: Vec<Tag>,
-        badge_awards: Vec<Tag>,
+        badge_definitions: Vec<Event>,
+        badge_awards: Vec<Event>,
         keys: &Keys,
     ) -> Result<ProfileBadgesEvent, ProfileBadgesEventError> {
         if badge_definitions.len() != badge_awards.len() {
             return Err(ProfileBadgesEventError::InvalidLength);
         }
+        dbg!(badge_awards.clone());
 
-        let badge_awards = ProfileBadgesEvent::filter_for_kind(badge_awards, &Kind::BadgeAward);
+        let mut badge_awards = ProfileBadgesEvent::filter_for_kind(badge_awards, &Kind::BadgeAward);
         if badge_awards.is_empty() {
             return Err(ProfileBadgesEventError::InvalidKind);
         }
 
-        let badge_definitions =
+        let mut badge_definitions =
             ProfileBadgesEvent::filter_for_kind(badge_definitions, &Kind::BadgeDefinition);
         if badge_definitions.is_empty() {
             return Err(ProfileBadgesEventError::InvalidKind);
@@ -209,20 +229,49 @@ impl ProfileBadgesEvent {
         let id_tag = Tag::Identifier("profile_badges".to_owned());
         let mut tags: Vec<Tag> = vec![id_tag];
 
+        let badge_definitions_identifiers: Vec<_> = badge_definitions
+            .iter_mut()
+            .map(|event| {
+                let tags = core::mem::take(&mut event.tags);
+                let id = Self::extract_identifier(tags.clone())
+                    .expect("BadgeDefinitions events should have identifier tags")
+                    .clone();
+                (event, id)
+            })
+            .collect();
+
+        let badge_awards_identifiers: Vec<_> = badge_awards
+            .iter_mut()
+            .map(|event| {
+                let tags = core::mem::take(&mut event.tags);
+                let id = Self::extract_identifier(tags.clone())
+                    .expect("BadgeAward events should have identifier tags")
+                    .clone();
+                (event, id)
+            })
+            .collect();
+        //dbg!(badge_awards_identifiers.());
         // This collection has been filtered for the needed tags
-        let users_badges = core::iter::zip(badge_definitions, badge_awards);
+        let users_badges: Vec<(_, _)> = dbg!(core::iter::zip(
+            badge_definitions_identifiers,
+            badge_awards_identifiers
+        ))
+        .collect();
+        dbg!(users_badges);
+        //unimplemented!();
         for (badge_definition, badge_award) in users_badges {
             match (&badge_definition, &badge_award) {
-                (Tag::A { ref identifier, .. }, Tag::Identifier(ref badge_id))
+                ((_, Tag::Identifier(identifier)), (_, Tag::Identifier(badge_id)))
                     if badge_id != identifier =>
                 {
                     return Err(ProfileBadgesEventError::MismatchedBadgeDefinitionOrAward);
                 }
-                (Tag::A { identifier, .. }, Tag::Identifier(badge_id))
-                    if badge_id == identifier =>
-                {
-                    tags.push(badge_award);
-                    tags.push(badge_definition);
+                (
+                    (badge_definition_event, Tag::Identifier(identifier)),
+                    (badge_award_event, Tag::Identifier(badge_id)),
+                ) if badge_id == identifier => {
+                    let badge_definition_event_tag = Tag::Event(badge_definition_event.id, (), ());
+                    tags.extend_from_slice(&[badge_definition_event, badge_award_event]);
                 }
                 _ => {}
             }
@@ -230,7 +279,7 @@ impl ProfileBadgesEvent {
 
         // Badge definitions and awards have been validated
 
-        let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
+        let event_builder = EventBuilder::new(Kind::ProfileBadges, String::new(), &tags);
         let event = event_builder.to_event(keys)?;
 
         Ok(ProfileBadgesEvent(event))
@@ -245,6 +294,11 @@ mod tests {
 
     use super::*;
     use crate::prelude::tag;
+
+    fn get_badge_with_id_only(id: String, keys: &Keys) -> BadgeDefinition {
+        let builder = BadgeDefinitionBuilder::new(id);
+        builder.build(keys).unwrap()
+    }
 
     #[test]
     fn test_badge_definition_builder() {
@@ -284,17 +338,15 @@ mod tests {
         .unwrap();
 
         let relay_url = tag::UncheckedUrl::from_str("wss://relay").unwrap();
-        let badge = Tag::A {
-            kind: Kind::BadgeDefinition,
-            public_key: pub_key.clone(),
-            identifier: "bravery".to_owned(),
-            relay_url: None,
-        };
+        let badge_definition = get_badge_with_id_only("bravery".to_owned(), &keys).0;
+
         let awarded_pub_keys = vec![
             Tag::PubKey(pub_key.clone(), Some(relay_url.clone())),
             Tag::PubKey(pub_key.clone(), Some(relay_url.clone())),
         ];
-        let badge_award = BadgeAward::new(badge, awarded_pub_keys, &keys).unwrap().0;
+        let badge_award = BadgeAward::new(&badge_definition, awarded_pub_keys, &keys)
+            .unwrap()
+            .0;
 
         assert_eq!(badge_award.kind, Kind::BadgeAward);
         assert_eq!(badge_award.tags, example_event.tags);
@@ -302,26 +354,48 @@ mod tests {
 
     #[test]
     fn test_profile_badges() {
-        let example_event_json = r#"{ "content":"","id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "kind": 30008, "pubkey": "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8","created_at":1671739153,"tags": [ ["d", "profile_badges"],["a", "30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:bravery"],["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://nostr.academy"],["a", "30009:alice:honor"],["e", "<honor badge award event id>", "wss://nostr.academy"]] }"#;
+        let example_event_json = r#"{ "content":"","id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "kind": 30008, "pubkey": "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8","created_at":1671739153,"tags": [ ["d", "profile_badges"],["a", "30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:bravery"],["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://nostr.academy"],["a", "30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:honor"],["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://nostr.academy"]] }"#;
         let example_event: Event = serde_json::from_str(example_event_json).unwrap();
 
-        let bravery_badge = Tag::A {
-            kind: Kind::BadgeDefinition,
-            public_key: pub_key.clone(),
-            identifier: "bravery".to_owned(),
-            relay_url: None,
-        };
-        let honor_badge = Tag::A {
-            kind: Kind::BadgeDefinition,
-            public_key: pub_key.clone(),
-            identifier: "honor".to_owned(),
-            relay_url: None,
-        };
-        let badge_definitions = vec![bravery_badge, honor_badge];
-
-        let badge_awards = vec![];
-
+        let pub_key = XOnlyPublicKey::from_str(
+            "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3",
+        )
+        .unwrap();
+        let relay_url = tag::UncheckedUrl::from_str("wss://relay").unwrap();
         let keys = Keys::generate();
-        ProfileBadgesEvent::new(badge_definitions, badge_awards, &keys);
+
+        let awarded_pub_keys = vec![
+            Tag::PubKey(pub_key.clone(), Some(relay_url.clone())),
+            Tag::PubKey(pub_key.clone(), Some(relay_url.clone())),
+        ];
+        let bravery_badge_event = get_badge_with_id_only("bravery".to_owned(), &keys).0;
+        dbg!(bravery_badge_event.clone());
+        dbg!(bravery_badge_event.tags.clone());
+        let bravery_badge_award =
+            BadgeAward::new(&bravery_badge_event, awarded_pub_keys.clone(), &keys)
+                .unwrap()
+                .0;
+
+        let honor_badge_event = get_badge_with_id_only("honor".to_owned(), &keys).0;
+        let honor_badge_award = BadgeAward::new(&honor_badge_event, awarded_pub_keys, &keys)
+            .unwrap()
+            .0;
+        let badge_definitions = vec![bravery_badge_event, honor_badge_event];
+
+        let badge_awards = vec![bravery_badge_award, honor_badge_award];
+        dbg!(badge_awards.clone());
+
+        assert_eq!(badge_awards.len(), 2);
+        assert_eq!(badge_definitions.len(), 2);
+
+        let profile_badges = ProfileBadgesEvent::new(badge_definitions, badge_awards, &keys)
+            .unwrap()
+            .0;
+        dbg!(profile_badges.clone());
+
+        dbg!(example_event.clone());
+
+        assert_eq!(profile_badges.kind, Kind::ProfileBadges);
+        assert!(true);
     }
 }
