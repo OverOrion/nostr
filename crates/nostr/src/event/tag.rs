@@ -510,6 +510,7 @@ where
                     if tag[2].is_empty() {
                         Ok(Self::Event(event_id, Some(UncheckedUrl::default()), None))
                     } else {
+                        
                         match Report::try_from(tag[2].as_str()) {
                             Ok(report) => Ok(Self::EventReport(event_id, report)),
                             Err(_) => Ok(Self::Event(
