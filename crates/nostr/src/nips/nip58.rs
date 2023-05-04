@@ -200,16 +200,6 @@ impl ProfileBadgesEvent {
             .cloned()
     }
 
-    fn extract_relay_url(tags: Vec<Tag>) -> Option<UncheckedUrl> {
-        tags.iter()
-            .find_map(|tag| match tag {
-                Tag::Event(_, unchecked_url, ..) => Some(unchecked_url),
-                _ => None,
-            })
-            .cloned()
-            .flatten()
-    }
-
     fn extract_awarded_public_key(
         tags: &[Tag],
         awarded_public_key: &XOnlyPublicKey,
@@ -283,7 +273,8 @@ impl ProfileBadgesEvent {
                         Tag::A { .. } => true,
                         _ => false,
                     })
-                    .expect("Badge Award must contain an a tag");
+                    .expect("Badge Award must contain an a tag")
+                    .clone();
                 let id = Self::extract_identifier(tags.clone())
                     .expect("BadgeAward events should have identifier tags")
                     .clone();
@@ -298,7 +289,7 @@ impl ProfileBadgesEvent {
             badge_awards_identifiers
         ))
         .collect();
-        dbg!(users_badges);
+        //dbg!(users_badges);
         //unimplemented!();
         for (badge_definition, badge_award) in users_badges {
             match (&badge_definition, &badge_award) {
@@ -308,10 +299,10 @@ impl ProfileBadgesEvent {
                     return Err(ProfileBadgesEventError::MismatchedBadgeDefinitionOrAward);
                 }
                 (
-                    (badge_definition_event, Tag::Identifier(identifier)),
+                    (_, Tag::Identifier(identifier)),
                     (badge_award_event, Tag::Identifier(badge_id), a_tag, relay_url),
                 ) if badge_id == identifier => {
-                    let badge_definition_event_tag = badge_definition_event.tags;
+                    let badge_definition_event_tag = a_tag.clone().to_owned();
                     let badge_award_event_tag =
                         Tag::Event(badge_award_event.id, relay_url.clone(), None);
                     tags.extend_from_slice(&[badge_definition_event_tag, badge_award_event_tag]);
