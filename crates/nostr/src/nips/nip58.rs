@@ -2,6 +2,8 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/58.md>
 
+use secp256k1::XOnlyPublicKey;
+
 use crate::{
     event::{builder::Error as BuilderError, tag::UncheckedUrl},
     Event, EventBuilder, Keys, Kind, Tag,
@@ -171,6 +173,9 @@ pub enum ProfileBadgesEventError {
     /// Mismatched badge definition or award
     #[error("mismatched badge definition/award")]
     MismatchedBadgeDefinitionOrAward,
+    /// Badge awards lack the awarded public key
+    #[error("badge award events lack the awarded public key")]
+    BadgeAwardsLackAwardedPublicKey,
     /// Event builder Error
     #[error(transparent)]
     EventBuilder(#[from] crate::event::builder::Error),
@@ -184,6 +189,7 @@ impl ProfileBadgesEvent {
             .filter(|e| e.kind == *kind_needed)
             .collect()
     }
+
     fn extract_identifier(tags: Vec<Tag>) -> Option<Tag> {
         dbg!(tags.clone());
         tags.iter()
@@ -193,13 +199,27 @@ impl ProfileBadgesEvent {
             })
             .cloned()
     }
-    fn extract_relay_url(tags: Vec<Tags>) -> Option<UncheckedUrl> {
+
+    fn extract_relay_url(tags: Vec<Tag>) -> Option<UncheckedUrl> {
         tags.iter()
-            .find(|tag| match tag {
-                Tag::Event(_, UncheckedUrl, ..) => uncheckedurl,
+            .find_map(|tag| match tag {
+                Tag::Event(_, unchecked_url, ..) => Some(unchecked_url),
                 _ => None,
             })
             .cloned()
+            .flatten()
+    }
+
+    fn extract_awarded_public_key(
+        tags: &[Tag],
+        awarded_public_key: &XOnlyPublicKey,
+    ) -> Option<(XOnlyPublicKey, Option<UncheckedUrl>)> {
+        tags.iter().find_map(|t| match t {
+            Tag::PubKey(pub_key, unchecked_url) if pub_key == awarded_public_key => {
+                Some((pub_key.clone(), unchecked_url.clone()))
+            }
+            _ => None,
+        })
     }
 
     /// Create a new [`ProfileBadgesEvent`] from badge definition and awards events
@@ -207,6 +227,7 @@ impl ProfileBadgesEvent {
     pub fn new(
         badge_definitions: Vec<Event>,
         badge_awards: Vec<Event>,
+        pubkey_awarded: &XOnlyPublicKey,
         keys: &Keys,
     ) -> Result<ProfileBadgesEvent, ProfileBadgesEventError> {
         if badge_definitions.len() != badge_awards.len() {
@@ -217,6 +238,15 @@ impl ProfileBadgesEvent {
         let mut badge_awards = ProfileBadgesEvent::filter_for_kind(badge_awards, &Kind::BadgeAward);
         if badge_awards.is_empty() {
             return Err(ProfileBadgesEventError::InvalidKind);
+        }
+
+        for award in &badge_awards {
+            if !award.tags.iter().any(|t| match t {
+                Tag::PubKey(pub_key, _) => pub_key == pubkey_awarded,
+                _ => false,
+            }) {
+                return Err(ProfileBadgesEventError::BadgeAwardsLackAwardedPublicKey);
+            }
         }
 
         let mut badge_definitions =
@@ -236,6 +266,7 @@ impl ProfileBadgesEvent {
                 let id = Self::extract_identifier(tags.clone())
                     .expect("BadgeDefinitions events should have identifier tags")
                     .clone();
+
                 (event, id)
             })
             .collect();
@@ -244,10 +275,20 @@ impl ProfileBadgesEvent {
             .iter_mut()
             .map(|event| {
                 let tags = core::mem::take(&mut event.tags);
+                let (_, relay_url) = Self::extract_awarded_public_key(&tags, pubkey_awarded)
+                    .expect("Badge Award must contain the awarded public key");
+                let a_tag = tags
+                    .iter()
+                    .find(|t| match t {
+                        Tag::A { .. } => true,
+                        _ => false,
+                    })
+                    .expect("Badge Award must contain an a tag");
                 let id = Self::extract_identifier(tags.clone())
                     .expect("BadgeAward events should have identifier tags")
                     .clone();
-                (event, id)
+
+                (event, id, a_tag, relay_url)
             })
             .collect();
         //dbg!(badge_awards_identifiers.());
@@ -261,17 +302,19 @@ impl ProfileBadgesEvent {
         //unimplemented!();
         for (badge_definition, badge_award) in users_badges {
             match (&badge_definition, &badge_award) {
-                ((_, Tag::Identifier(identifier)), (_, Tag::Identifier(badge_id)))
+                ((_, Tag::Identifier(identifier)), (_, Tag::Identifier(badge_id), ..))
                     if badge_id != identifier =>
                 {
                     return Err(ProfileBadgesEventError::MismatchedBadgeDefinitionOrAward);
                 }
                 (
                     (badge_definition_event, Tag::Identifier(identifier)),
-                    (badge_award_event, Tag::Identifier(badge_id)),
+                    (badge_award_event, Tag::Identifier(badge_id), a_tag, relay_url),
                 ) if badge_id == identifier => {
-                    let badge_definition_event_tag = Tag::Event(badge_definition_event.id, (), ());
-                    tags.extend_from_slice(&[badge_definition_event, badge_award_event]);
+                    let badge_definition_event_tag = badge_definition_event.tags;
+                    let badge_award_event_tag =
+                        Tag::Event(badge_award_event.id, relay_url.clone(), None);
+                    tags.extend_from_slice(&[badge_definition_event_tag, badge_award_event_tag]);
                 }
                 _ => {}
             }
