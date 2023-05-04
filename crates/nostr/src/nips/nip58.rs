@@ -304,7 +304,7 @@ impl ProfileBadgesEvent {
                 ) if badge_id == identifier => {
                     let badge_definition_event_tag = a_tag.clone().to_owned();
                     let badge_award_event_tag =
-                        Tag::Event(badge_award_event.id, relay_url.clone(), None);
+                        Tag::Event(badge_definition.0.id, relay_url.clone(), None);
                     tags.extend_from_slice(&[badge_definition_event_tag, badge_award_event_tag]);
                 }
                 _ => {}
@@ -407,15 +407,31 @@ mod tests {
 
     #[test]
     fn test_profile_badges() {
-        let example_event_json = r#"{ "content":"","id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "kind": 30008, "pubkey": "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8","created_at":1671739153,"tags": [ ["d", "profile_badges"],["a", "30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:bravery"],["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://nostr.academy"],["a", "30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:honor"],["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://nostr.academy"]] }"#;
-        let example_event: Event = serde_json::from_str(example_event_json).unwrap();
-
-        let pub_key = XOnlyPublicKey::from_str(
-            "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3",
-        )
-        .unwrap();
-        let relay_url = tag::UncheckedUrl::from_str("wss://relay").unwrap();
         let keys = Keys::generate();
+        let pub_key = keys.public_key();
+
+        let example_event_json = format!(
+            r#"{{
+            "content":"",
+            "id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7",
+            "kind": 30008,
+            "pubkey": "{}",
+            "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8",
+            "created_at":1671739153,
+            "tags":[
+                ["d", "profile_badges"],
+                ["a", "30009:{}:bravery"],
+                ["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://relay"],
+                ["a", "30009:{}:honor"],
+                ["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://relay"]]
+            }}"#,
+            pub_key.to_string(),
+            pub_key.to_string(),
+            pub_key.to_string(),
+        );
+        let example_event: Event = serde_json::from_str(&example_event_json).unwrap();
+
+        let relay_url = tag::UncheckedUrl::from_str("wss://relay").unwrap();
 
         let awarded_pub_keys = vec![
             Tag::PubKey(pub_key.clone(), Some(relay_url.clone())),
@@ -444,6 +460,6 @@ mod tests {
                 .0;
 
         assert_eq!(profile_badges.kind, Kind::ProfileBadges);
-        assert!(true);
+        assert_eq!(profile_badges.tags, example_event.tags);
     }
 }
