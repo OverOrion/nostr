@@ -234,9 +234,7 @@ impl ProfileBadgesEvent {
             return Err(ProfileBadgesEventError::InvalidLength);
         }
 
-        dbg!(badge_awards.clone());
         let mut badge_awards = ProfileBadgesEvent::filter_for_kind(badge_awards, &Kind::BadgeAward);
-        dbg!(badge_awards.clone());
         if badge_awards.is_empty() {
             return Err(ProfileBadgesEventError::InvalidKind);
         }
@@ -276,7 +274,6 @@ impl ProfileBadgesEvent {
             .iter_mut()
             .map(|event| {
                 let tags = core::mem::take(&mut event.tags);
-                dbg!(tags.clone());
                 let (_, relay_url) = Self::extract_awarded_public_key(&tags, pubkey_awarded)
                     .expect("Badge Award must contain the awarded public key");
                 let (id, a_tag) = tags
@@ -368,8 +365,6 @@ mod tests {
     fn test_badge_award() {
         let keys = Keys::generate();
         let pub_key = keys.public_key();
-        dbg!(pub_key);
-        dbg!(pub_key.to_bech32().unwrap());
 
         let example_event_json = format!(
             r#"{{
@@ -447,9 +442,6 @@ mod tests {
             ProfileBadgesEvent::new(badge_definitions, badge_awards, &pub_key, &keys)
                 .unwrap()
                 .0;
-        //dbg!(profile_badges.clone());
-
-        //dbg!(example_event.clone());
 
         assert_eq!(profile_badges.kind, Kind::ProfileBadges);
         assert!(true);
