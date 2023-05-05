@@ -234,7 +234,7 @@ impl ProfileBadgesEvent {
             return Err(ProfileBadgesEventError::InvalidLength);
         }
 
-        let badge_awards = ProfileBadgesEvent::filter_for_kind(badge_awards, &Kind::BadgeAward);
+        let mut badge_awards = ProfileBadgesEvent::filter_for_kind(badge_awards, &Kind::BadgeAward);
         if badge_awards.is_empty() {
             return Err(ProfileBadgesEventError::InvalidKind);
         }
@@ -258,20 +258,54 @@ impl ProfileBadgesEvent {
         let id_tag = Tag::Identifier("profile_badges".to_owned());
         let mut tags: Vec<Tag> = vec![id_tag];
 
+        let badge_definitions_identifiers: Vec<_> = badge_definitions
+            .iter_mut()
+            .map(|event| {
+                let tags = core::mem::take(&mut event.tags);
+                let id = Self::extract_identifier(tags.clone())
+                    .expect("BadgeDefinitions events should have identifier tags")
+                    .clone();
+
+                (event, id)
+            })
+            .collect();
+
+        let badge_awards_identifiers: Vec<_> = badge_awards
+            .iter_mut()
+            .map(|event| {
+                let tags = core::mem::take(&mut event.tags);
+                let (_, relay_url) = Self::extract_awarded_public_key(&tags, pubkey_awarded)
+                    .expect("Badge Award must contain the awarded public key");
+                let (id, a_tag) = tags
+                    .iter()
+                    .find_map(|t| match t {
+                        Tag::A { identifier, .. } => Some((identifier.clone(), t.clone())),
+                        _ => None,
+                    })
+                    .expect("Badge Award must contain an a tag")
+                    .clone();
+
+                (event, id, a_tag, relay_url)
+            })
+            .collect();
+
         // This collection has been filtered for the needed tags
-        let users_badges = core::iter::zip(badge_definitions, badge_awards);
+        let users_badges: Vec<(_, _)> =
+            core::iter::zip(badge_definitions_identifiers, badge_awards_identifiers).collect();
+
         for (badge_definition, badge_award) in users_badges {
             match (&badge_definition, &badge_award) {
-                (Tag::A { ref identifier, .. }, Tag::Identifier(ref badge_id))
-                    if badge_id != identifier =>
-                {
+                ((_, Tag::Identifier(identifier)), (_, badge_id, ..)) if badge_id != identifier => {
                     return Err(ProfileBadgesEventError::MismatchedBadgeDefinitionOrAward);
                 }
-                (Tag::A { identifier, .. }, Tag::Identifier(badge_id))
-                    if badge_id == identifier =>
-                {
-                    tags.push(badge_award);
-                    tags.push(badge_definition);
+                (
+                    (_, Tag::Identifier(identifier)),
+                    (badge_award_event, badge_id, a_tag, relay_url),
+                ) if badge_id == identifier => {
+                    let badge_definition_event_tag = a_tag.clone().to_owned();
+                    let badge_award_event_tag =
+                        Tag::Event(badge_definition.0.id, relay_url.clone(), None);
+                    tags.extend_from_slice(&[badge_definition_event_tag, badge_award_event_tag]);
                 }
                 _ => {}
             }
@@ -279,7 +313,7 @@ impl ProfileBadgesEvent {
 
         // Badge definitions and awards have been validated
 
-        let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
+        let event_builder = EventBuilder::new(Kind::ProfileBadges, String::new(), &tags);
         let event = event_builder.to_event(keys)?;
 
         Ok(ProfileBadgesEvent(event))
