@@ -203,7 +203,19 @@ impl ProfileBadgesEvent {
             .collect()
     }
 
-    /// Create a new [`ProfileBadgesEvent`] from badge definition and awards tags.
+    fn extract_awarded_public_key(
+        tags: &[Tag],
+        awarded_public_key: &XOnlyPublicKey,
+    ) -> Option<(XOnlyPublicKey, Option<UncheckedUrl>)> {
+        tags.iter().find_map(|t| match t {
+            Tag::PubKey(pub_key, unchecked_url) if pub_key == awarded_public_key => {
+                Some((pub_key.clone(), unchecked_url.clone()))
+            }
+            _ => None,
+        })
+    }
+
+    /// Create a new [`ProfileBadgesEvent`] from badge definition and awards events
     /// [`badge_definitions`] and [`badge_awards`] must be ordered, so on the same position they refer to the same badge
     pub fn new(
         badge_definitions: Vec<Tag>,
