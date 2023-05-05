@@ -193,11 +193,18 @@ pub enum ProfileBadgesEventError {
 }
 
 impl ProfileBadgesEvent {
-    /// Helper function to filter tags for a specific [`Kind`]
-    fn filter_for_kind(tags: Vec<Tag>, kind_needed: &Kind) -> Vec<Tag> {
-        tags.into_iter()
-            .filter(|e| match e {
-                Tag::A { kind, .. } => kind == kind_needed,
+    /// Helper function to filter events for a specific [`Kind`]
+    pub(crate) fn filter_for_kind(events: Vec<Event>, kind_needed: &Kind) -> Vec<Event> {
+        events
+            .into_iter()
+            .filter(|e| e.kind == *kind_needed)
+            .collect()
+    }
+
+    fn extract_identifier(tags: Vec<Tag>) -> Option<Tag> {
+        tags.iter()
+            .find(|tag| match tag {
+                Tag::Identifier(_) => true,
                 _ => false,
             })
             .collect()
