@@ -225,8 +225,9 @@ impl ProfileBadgesEvent {
     /// Create a new [`ProfileBadgesEvent`] from badge definition and awards events
     /// [`badge_definitions`] and [`badge_awards`] must be ordered, so on the same position they refer to the same badge
     pub fn new(
-        badge_definitions: Vec<Tag>,
-        badge_awards: Vec<Tag>,
+        badge_definitions: Vec<Event>,
+        badge_awards: Vec<Event>,
+        pubkey_awarded: &XOnlyPublicKey,
         keys: &Keys,
     ) -> Result<ProfileBadgesEvent, ProfileBadgesEventError> {
         if badge_definitions.len() != badge_awards.len() {
