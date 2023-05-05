@@ -158,8 +158,6 @@ impl BadgeAward {
             relay_url: None,
         };
         let mut tags = vec![a_tag];
-        //        tags.extend_from_slice(&badge_definition.tags);
-        //tags.clone();
         tags.extend(awarded_pub_keys);
 
         let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
