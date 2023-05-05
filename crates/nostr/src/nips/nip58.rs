@@ -140,7 +140,7 @@ impl BadgeAward {
             }),
             _ => return Err(Error::InvalidKind),
         }
-        .expect("Badge Definition event should must have identifier (d) tags");
+        .expect("Badge Definition event must have identifier (d) tags");
 
         let awarded_pub_keys: Vec<Tag> = awarded_pub_keys
             .into_iter()
