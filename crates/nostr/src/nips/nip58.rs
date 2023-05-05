@@ -363,27 +363,43 @@ mod tests {
     }
     #[test]
     fn test_badge_award() {
-        let example_event_json = r#"{ "content":"","id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "kind": 8, "pubkey": "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8","created_at":1671739153,"tags": [ ["a","30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:bravery"],["p", "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "wss://relay"], ["p", "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "wss://relay"] ] }"#;
-        let example_event: Event = serde_json::from_str(example_event_json).unwrap();
-
         let keys = Keys::generate();
-        let pub_key = XOnlyPublicKey::from_str(
-            "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3",
-        )
-        .unwrap();
+        let pub_key = keys.public_key();
+
+        let example_event_json = format!(
+            r#"{{
+    "content": "",
+    "id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7",
+    "kind": 8,
+    "pubkey": "{}",
+    "sig": "fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8",
+    "created_at": 1671739153,
+    "tags": [
+        ["a", "30009:{}:bravery"],
+        ["p", "{}", "wss://relay"],
+        ["p", "{}", "wss://relay"]
+    ]
+}}"#,
+            pub_key.to_string(),
+            pub_key.to_string(),
+            pub_key.to_string(),
+            pub_key.to_string()
+        );
+
+        //let example_event_json = r#"{ "content":"","id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "kind": 8, "pubkey": "{}", "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8","created_at":1671739153,"tags": [ ["a","30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:bravery"],["p", "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "wss://relay"], ["p", "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "wss://relay"] ] }"#;
+        //let example_event_json = format!(example_event_json, pub_key);
+        let example_event: Event = serde_json::from_str(&example_event_json).unwrap();
 
         let relay_url = tag::UncheckedUrl::from_str("wss://relay").unwrap();
-        let badge = Tag::A {
-            kind: Kind::BadgeDefinition,
-            public_key: pub_key.clone(),
-            identifier: "bravery".to_owned(),
-            relay_url: None,
-        };
+        let badge_definition = get_badge_with_id_only("bravery".to_owned(), &keys).0;
+
         let awarded_pub_keys = vec![
             Tag::PubKey(pub_key.clone(), Some(relay_url.clone())),
             Tag::PubKey(pub_key.clone(), Some(relay_url.clone())),
         ];
-        let badge_award = BadgeAward::new(badge, awarded_pub_keys, &keys).unwrap().0;
+        let badge_award = BadgeAward::new(&badge_definition, awarded_pub_keys, &keys)
+            .unwrap()
+            .0;
 
         assert_eq!(badge_award.kind, Kind::BadgeAward);
         assert_eq!(badge_award.tags, example_event.tags);
