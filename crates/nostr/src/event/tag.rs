@@ -389,10 +389,7 @@ where
         let tag: Vec<String> = tag.into_iter().map(|v| v.into()).collect();
         let tag_len: usize = tag.len();
         let tag_kind: TagKind = match tag.first() {
-            Some(kind) => {
-                println!("tag_kind is : {}", &kind);
-                TagKind::from(kind)
-            }
+            Some(kind) => TagKind::from(kind),
             None => return Err(Error::KindNotFound),
         };
 
@@ -411,6 +408,7 @@ where
             }
         } else if tag_len == 2 {
             let content: &str = &tag[1];
+
             match tag_kind {
                 TagKind::A => {
                     let kpi: Vec<&str> = tag[1].split(':').collect();
