@@ -151,7 +151,15 @@ impl BadgeAward {
             return Err(Error::InvalidKind);
         }
 
-        let mut tags = vec![badge];
+        let a_tag = Tag::A {
+            kind: Kind::BadgeDefinition,
+            public_key: keys.public_key(),
+            identifier: badge_id.to_owned(),
+            relay_url: None,
+        };
+        let mut tags = vec![a_tag];
+        //        tags.extend_from_slice(&badge_definition.tags);
+        //tags.clone();
         tags.extend(awarded_pub_keys);
 
         let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
