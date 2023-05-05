@@ -207,7 +207,7 @@ impl ProfileBadgesEvent {
                 Tag::Identifier(_) => true,
                 _ => false,
             })
-            .collect()
+            .cloned()
     }
 
     fn extract_awarded_public_key(
