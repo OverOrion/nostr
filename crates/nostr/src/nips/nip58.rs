@@ -285,7 +285,13 @@ mod tests {
     use secp256k1::XOnlyPublicKey;
 
     use super::*;
+    use crate::nips::nip19::ToBech32;
     use crate::prelude::tag;
+
+    fn get_badge_with_id_only(id: String, keys: &Keys) -> BadgeDefinition {
+        let builder = BadgeDefinitionBuilder::new(id);
+        builder.build(keys).unwrap()
+    }
 
     #[test]
     fn test_badge_definition_builder() {
