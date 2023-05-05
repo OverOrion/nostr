@@ -304,7 +304,7 @@ impl ProfileBadgesEvent {
                 ) if badge_id == identifier => {
                     let badge_definition_event_tag = a_tag.clone().to_owned();
                     let badge_award_event_tag =
-                        Tag::Event(badge_definition.0.id, relay_url.clone(), None);
+                        Tag::Event(badge_award_event.id, relay_url.clone(), None);
                     tags.extend_from_slice(&[badge_definition_event_tag, badge_award_event_tag]);
                 }
                 _ => {}
@@ -324,10 +324,7 @@ impl ProfileBadgesEvent {
 mod tests {
     use std::str::FromStr;
 
-    use secp256k1::XOnlyPublicKey;
-
     use super::*;
-    use crate::nips::nip19::ToBech32;
     use crate::prelude::tag;
 
     fn get_badge_with_id_only(id: String, keys: &Keys) -> BadgeDefinition {
@@ -368,26 +365,24 @@ mod tests {
 
         let example_event_json = format!(
             r#"{{
-    "content": "",
-    "id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7",
-    "kind": 8,
-    "pubkey": "{}",
-    "sig": "fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8",
-    "created_at": 1671739153,
-    "tags": [
-        ["a", "30009:{}:bravery"],
-        ["p", "{}", "wss://relay"],
-        ["p", "{}", "wss://relay"]
-    ]
-}}"#,
+            "content": "",
+            "id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7",
+            "kind": 8,
+            "pubkey": "{}",
+            "sig": "fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8",
+            "created_at": 1671739153,
+            "tags": [
+                ["a", "30009:{}:bravery"],
+                ["p", "{}", "wss://relay"],
+                ["p", "{}", "wss://relay"]
+            ]
+            }}"#,
             pub_key.to_string(),
             pub_key.to_string(),
             pub_key.to_string(),
             pub_key.to_string()
         );
 
-        //let example_event_json = r#"{ "content":"","id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "kind": 8, "pubkey": "{}", "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8","created_at":1671739153,"tags": [ ["a","30009:79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3:bravery"],["p", "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "wss://relay"], ["p", "79dff8f82963424e0bb02708a22e44b4980893e3a4be0fa3cb60a43b946764e3", "wss://relay"] ] }"#;
-        //let example_event_json = format!(example_event_json, pub_key);
         let example_event: Event = serde_json::from_str(&example_event_json).unwrap();
 
         let relay_url = tag::UncheckedUrl::from_str("wss://relay").unwrap();
@@ -410,27 +405,6 @@ mod tests {
         let keys = Keys::generate();
         let pub_key = keys.public_key();
 
-        let example_event_json = format!(
-            r#"{{
-            "content":"",
-            "id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7",
-            "kind": 30008,
-            "pubkey": "{}",
-            "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8",
-            "created_at":1671739153,
-            "tags":[
-                ["d", "profile_badges"],
-                ["a", "30009:{}:bravery"],
-                ["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://relay"],
-                ["a", "30009:{}:honor"],
-                ["e", "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7", "wss://relay"]]
-            }}"#,
-            pub_key.to_string(),
-            pub_key.to_string(),
-            pub_key.to_string(),
-        );
-        let example_event: Event = serde_json::from_str(&example_event_json).unwrap();
-
         let relay_url = tag::UncheckedUrl::from_str("wss://relay").unwrap();
 
         let awarded_pub_keys = vec![
@@ -449,7 +423,32 @@ mod tests {
             .0;
         let badge_definitions = vec![bravery_badge_event, honor_badge_event];
 
-        let badge_awards = vec![bravery_badge_award, honor_badge_award];
+        let badge_awards = vec![bravery_badge_award.clone(), honor_badge_award.clone()];
+
+        let (bravery_badge_award_event_id, honor_badge_award_event_id) =
+            (bravery_badge_award.id, honor_badge_award.id);
+        let example_event_json = format!(
+            r#"{{
+            "content":"",
+            "id": "378f145897eea948952674269945e88612420db35791784abf0616b4fed56ef7",
+            "kind": 30008,
+            "pubkey": "{}",
+            "sig":"fd0954de564cae9923c2d8ee9ab2bf35bc19757f8e328a978958a2fcc950eaba0754148a203adec29b7b64080d0cf5a32bebedd768ea6eb421a6b751bb4584a8",
+            "created_at":1671739153,
+            "tags":[
+                ["d", "profile_badges"],
+                ["a", "30009:{}:bravery"],
+                ["e", "{}", "wss://relay"],
+                ["a", "30009:{}:honor"],
+                ["e", "{}", "wss://relay"]]
+            }}"#,
+            pub_key.to_string(),
+            pub_key.to_string(),
+            bravery_badge_award_event_id.to_string(),
+            pub_key.to_string(),
+            honor_badge_award_event_id.to_string(),
+        );
+        let example_event: Event = serde_json::from_str(&example_event_json).unwrap();
 
         assert_eq!(badge_awards.len(), 2);
         assert_eq!(badge_definitions.len(), 2);
