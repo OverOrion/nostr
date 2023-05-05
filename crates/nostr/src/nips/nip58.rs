@@ -128,15 +128,19 @@ pub struct BadgeAward(Event);
 
 impl BadgeAward {
     ///
-    pub fn new(badge: Tag, awarded_pub_keys: Vec<Tag>, keys: &Keys) -> Result<BadgeAward, Error> {
-        match badge {
-            Tag::A { kind, .. } => {
-                if kind != Kind::BadgeDefinition {
-                    return Err(Error::InvalidKind);
-                }
-            }
+    pub fn new(
+        badge_definition: &Event,
+        awarded_pub_keys: Vec<Tag>,
+        keys: &Keys,
+    ) -> Result<BadgeAward, Error> {
+        let badge_id = match badge_definition.kind {
+            Kind::BadgeDefinition => badge_definition.tags.iter().find_map(|t| match t {
+                Tag::Identifier(id) => Some(id),
+                _ => None,
+            }),
             _ => return Err(Error::InvalidKind),
-        };
+        }
+        .expect("Badge Definition event should must have identifier (d) tags");
 
         let awarded_pub_keys: Vec<Tag> = awarded_pub_keys
             .into_iter()
