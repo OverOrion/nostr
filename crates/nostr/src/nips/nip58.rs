@@ -184,6 +184,9 @@ pub enum ProfileBadgesEventError {
     /// Mismatched badge definition or award
     #[error("mismatched badge definition/award")]
     MismatchedBadgeDefinitionOrAward,
+    /// Badge awards lack the awarded public key
+    #[error("badge award events lack the awarded public key")]
+    BadgeAwardsLackAwardedPublicKey,
     /// Event builder Error
     #[error(transparent)]
     EventBuilder(#[from] crate::event::builder::Error),
@@ -216,7 +219,16 @@ impl ProfileBadgesEvent {
             return Err(ProfileBadgesEventError::InvalidKind);
         }
 
-        let badge_definitions =
+        for award in &badge_awards {
+            if !award.tags.iter().any(|t| match t {
+                Tag::PubKey(pub_key, _) => pub_key == pubkey_awarded,
+                _ => false,
+            }) {
+                return Err(ProfileBadgesEventError::BadgeAwardsLackAwardedPublicKey);
+            }
+        }
+
+        let mut badge_definitions =
             ProfileBadgesEvent::filter_for_kind(badge_definitions, &Kind::BadgeDefinition);
         if badge_definitions.is_empty() {
             return Err(ProfileBadgesEventError::InvalidKind);
