@@ -491,11 +491,7 @@ where
                             kind: Kind::from_str(kpi[0])?,
                             public_key: XOnlyPublicKey::from_str(kpi[1])?,
                             identifier: kpi[2].to_string(),
-<<<<<<< HEAD
-                            relay_url: UncheckedUrl::from(tag[2].clone()),
-=======
                             relay_url: Some(UncheckedUrl(tag[2].clone())),
->>>>>>> bb239c0 (nostr/nips: add test case for BadgeAward event, allow `a` tags to no lack relay URL)
                         })
                     } else {
                         Err(Error::InvalidLength)
@@ -927,11 +923,7 @@ mod tests {
                     "a695f6b60119d9521934a691347d9f78e8770b56da16bb255ee286ddf9fda919"
                 )?,
                 identifier: String::from("ipsum"),
-<<<<<<< HEAD
-                relay_url: UncheckedUrl::from("wss://relay.nostr.org")
-=======
                 relay_url: Some(UncheckedUrl::from_str("wss://relay.nostr.org")?)
->>>>>>> bb239c0 (nostr/nips: add test case for BadgeAward event, allow `a` tags to no lack relay URL)
             }
             .as_vec()
         );
@@ -1152,11 +1144,7 @@ mod tests {
                     "a695f6b60119d9521934a691347d9f78e8770b56da16bb255ee286ddf9fda919"
                 )?,
                 identifier: String::from("ipsum"),
-<<<<<<< HEAD
-                relay_url: UncheckedUrl::from("wss://relay.nostr.org")
-=======
                 relay_url: Some(UncheckedUrl::from_str("wss://relay.nostr.org")?)
->>>>>>> bb239c0 (nostr/nips: add test case for BadgeAward event, allow `a` tags to no lack relay URL)
             }
         );
 
