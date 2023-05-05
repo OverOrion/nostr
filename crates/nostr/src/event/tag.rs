@@ -388,13 +388,8 @@ where
     fn try_from(tag: Vec<S>) -> Result<Self, Self::Error> {
         let tag: Vec<String> = tag.into_iter().map(|v| v.into()).collect();
         let tag_len: usize = tag.len();
-        print!("parsing: {:#?}", &tag);
-        println!("tag_len is : {}", tag_len);
         let tag_kind: TagKind = match tag.first() {
-            Some(kind) => {
-                println!("tag_kind is : {}", &kind);
-                TagKind::from(kind)
-            }
+            Some(kind) => TagKind::from(kind),
             None => return Err(Error::KindNotFound),
         };
 
@@ -413,8 +408,6 @@ where
             }
         } else if tag_len == 2 {
             let content: &str = &tag[1];
-            println!("content is : {}", &content);
-            println!("tag_kind is : {}", &tag_kind);
 
             match tag_kind {
                 TagKind::A => {
@@ -477,7 +470,6 @@ where
                     if tag[2].is_empty() {
                         Ok(Self::Event(event_id, Some(UncheckedUrl::default()), None))
                     } else {
-                        
                         match Report::try_from(tag[2].as_str()) {
                             Ok(report) => Ok(Self::EventReport(event_id, report)),
                             Err(_) => Ok(Self::Event(
