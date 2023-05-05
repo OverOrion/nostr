@@ -2,7 +2,12 @@
 //!
 //! <https://github.com/nostr-protocol/nips/blob/master/58.md>
 
-use crate::{event::builder::Error as BuilderError, Event, EventBuilder, Keys, Kind, Tag};
+use secp256k1::XOnlyPublicKey;
+
+use crate::{
+    event::{builder::Error as BuilderError, tag::UncheckedUrl},
+    Event, EventBuilder, Keys, Kind, Tag,
+};
 
 #[derive(Debug, thiserror::Error)]
 /// [`BadgeAward`] error
