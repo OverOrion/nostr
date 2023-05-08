@@ -14,7 +14,7 @@ use std::{
 };
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use alloc::fmt;
+use alloc::{fmt, string::String, vec::Vec};
 #[cfg(all(feature = "alloc", not(feature = "std")))]
 use core::num;
 
