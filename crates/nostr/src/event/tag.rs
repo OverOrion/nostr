@@ -5,7 +5,6 @@
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::{
-    borrow::ToOwned,
     fmt, format,
     str::FromStr,
     string::{String, ToString},
