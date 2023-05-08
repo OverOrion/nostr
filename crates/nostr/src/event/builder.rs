@@ -267,7 +267,13 @@ impl EventBuilder {
             let new_now = time_supplier.now();
             let created_at = time_supplier.duration_since_starting_point(now.clone());
             let created_at = time_supplier.to_timestamp(created_at);
-            let id = EventId::new(&pubkey, created_at, &self.kind, &tags, &self.content);
+            let id = EventId::new(
+                &pubkey,
+                created_at.clone(),
+                &self.kind,
+                &tags,
+                &self.content,
+            );
 
             if nip13::get_leading_zero_bits(id.inner()) >= difficulty {
                 log::debug!(
@@ -280,7 +286,7 @@ impl EventBuilder {
                         / cmp::max(1, time_supplier.elapsed_since(now, new_now).as_millis())
                 );
 
-                return self.to_unsigned_event(pubkey);
+                return self.to_unsigned_event_with_timestamp(pubkey, created_at);
             }
 
             tags.pop();
