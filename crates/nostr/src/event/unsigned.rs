@@ -4,10 +4,9 @@
 //! Unsigned Event
 
 #[cfg(feature = "alloc")]
-use alloc::{
-    string::{String, ToString},
-    vec::Vec,
-};
+use alloc::string::{String, ToString};
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 use secp256k1::{schnorr::Signature, XOnlyPublicKey};
 use serde::{Deserialize, Serialize};
