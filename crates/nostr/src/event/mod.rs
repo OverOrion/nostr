@@ -8,11 +8,9 @@
 use std::str::FromStr;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use alloc::{
-    str::FromStr,
-    string::{String, ToString},
-    vec::Vec,
-};
+use alloc::string::{String, ToString};
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::vec::Vec;
 
 use secp256k1::{schnorr::Signature, Message, Secp256k1, Verification, XOnlyPublicKey};
 use serde::{Deserialize, Serialize};
