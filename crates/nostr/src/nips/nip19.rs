@@ -8,11 +8,10 @@
 #![allow(missing_docs)]
 
 #[cfg(not(feature = "std"))]
-use alloc::{
-    string::{self, String, ToString},
-    vec,
-    vec::Vec,
-};
+use alloc::string::{self, String, ToString};
+#[cfg(not(feature = "std"))]
+use alloc::vec::{self, Vec};
+
 #[cfg(feature = "std")]
 use std::string;
 
