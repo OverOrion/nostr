@@ -3,7 +3,9 @@
 //! <https://github.com/nostr-protocol/nips/blob/master/65.md>
 
 #[cfg(feature = "alloc")]
-use alloc::{string::String, vec::Vec};
+use alloc::string::String;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 use crate::Event;
 
