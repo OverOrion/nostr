@@ -13,7 +13,9 @@ use secp256k1::XOnlyPublicKey;
 use crate::nips::nip19::{Error, FromBech32, ToBech32, PREFIX_BECH32_PROFILE, RELAY, SPECIAL};
 
 #[cfg(feature = "alloc")]
-use alloc::{string::String, vec::Vec};
+use alloc::string::String;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 /// Profile
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
