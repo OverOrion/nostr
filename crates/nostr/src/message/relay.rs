@@ -5,11 +5,11 @@
 //! Relay messages
 
 #[cfg(feature = "alloc")]
-use alloc::{
-    boxed::Box,
-    string::{String, ToString},
-    vec,
-};
+use alloc::boxed::Box;
+#[cfg(feature = "alloc")]
+use alloc::string::{String, ToString};
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
