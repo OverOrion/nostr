@@ -4,13 +4,13 @@
 //! Tag
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use alloc::{
-    fmt, format,
-    str::FromStr,
-    string::{String, ToString},
-    vec,
-    vec::Vec,
-};
+use alloc::str::FromStr;
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::string::{String, ToString};
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::vec::{self, Vec};
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{fmt, format};
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
 use core::num::ParseIntError;
