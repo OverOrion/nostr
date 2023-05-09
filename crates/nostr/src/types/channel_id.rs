@@ -4,10 +4,9 @@
 //! Channel Id
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use alloc::{
-    string::{String, ToString},
-    vec::Vec,
-};
+use alloc::string::{String, ToString};
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::vec::Vec;
 use core::str::FromStr;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
