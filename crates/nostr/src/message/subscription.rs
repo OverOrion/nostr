@@ -10,12 +10,11 @@
 use std::fmt;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use alloc::{
-    fmt,
-    string::{String, ToString},
-    vec,
-    vec::Vec,
-};
+use alloc::fmt;
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::string::{String, ToString};
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::vec::{self, Vec};
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;
