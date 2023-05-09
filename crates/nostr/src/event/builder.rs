@@ -3,11 +3,9 @@
 
 //! Event builder
 #[cfg(feature = "alloc")]
-use alloc::{
-    string::{String, ToString},
-    vec,
-    vec::Vec,
-};
+use alloc::string::{self, String, ToString};
+#[cfg(feature = "alloc")]
+use alloc::vec::{self, Vec};
 
 use secp256k1::schnorr::Signature;
 use secp256k1::{Message, XOnlyPublicKey};
