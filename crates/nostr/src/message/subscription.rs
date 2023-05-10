@@ -14,7 +14,7 @@ use alloc::fmt;
 #[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::string::{String, ToString};
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use alloc::vec::{self, Vec};
+use alloc::{vec, vec::Vec};
 
 use bitcoin_hashes::sha256::Hash as Sha256Hash;
 use bitcoin_hashes::Hash;
