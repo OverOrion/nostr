@@ -12,7 +12,7 @@ use alloc::str::FromStr;
 use std::str::FromStr;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use rand_core::OsRng;
+use rand::rngs::OsRng;
 #[cfg(feature = "std")]
 use secp256k1::rand::rngs::OsRng;
 
