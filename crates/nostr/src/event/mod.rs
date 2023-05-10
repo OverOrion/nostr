@@ -4,6 +4,8 @@
 
 //! Event
 
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use core::str::FromStr;
 #[cfg(feature = "std")]
 use std::str::FromStr;
 
