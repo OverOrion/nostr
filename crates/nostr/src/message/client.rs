@@ -9,7 +9,7 @@ use alloc::boxed::Box;
 #[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
 #[cfg(feature = "alloc")]
-use alloc::vec::{self, Vec};
+use alloc::{vec, vec::Vec};
 
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
