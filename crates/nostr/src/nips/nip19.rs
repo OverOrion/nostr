@@ -8,9 +8,9 @@
 #![allow(missing_docs)]
 
 #[cfg(not(feature = "std"))]
-use alloc::string::{FromUtf8Error, ToString};
+use alloc::string::{FromUtf8Error, String, ToString};
 #[cfg(not(feature = "std"))]
-use alloc::vec::{self, Vec};
+use alloc::{vec, vec::Vec};
 use core::fmt;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
