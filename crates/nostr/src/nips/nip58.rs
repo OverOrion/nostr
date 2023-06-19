@@ -185,6 +185,18 @@ impl BadgeDefinitionBuilder {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BadgeDefinition(Event);
 
+impl BadgeDefinition {
+    /// Extract the constructed [`Event`] struct
+    pub fn into_event(self) -> Event {
+        self.0
+    }
+
+    /// Extract the constructed [`Event`] struct
+    pub fn as_event(&self) -> &Event {
+        &self.0
+    }
+}
+
 /// Badge award event as specified in NIP-58
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BadgeAward(Event);
@@ -252,6 +264,16 @@ impl BadgeAward {
 
         let event_builder = EventBuilder::new(Kind::BadgeAward, String::new(), &tags);
         Ok(event_builder)
+    }
+
+    /// Extract the constructed [`Event`] struct
+    pub fn into_event(self) -> Event {
+        self.0
+    }
+
+    /// Extract the constructed [`Event`] struct
+    pub fn as_event(&self) -> &Event {
+        &self.0
     }
 }
 
@@ -459,6 +481,15 @@ impl ProfileBadgesEvent {
 
         let event_builder = EventBuilder::new(Kind::ProfileBadges, String::new(), &tags);
         Ok(event_builder)
+    }
+    /// Extract the constructed [`Event`] struct
+    pub fn into_event(self) -> Event {
+        self.0
+    }
+
+    /// Extract the constructed [`Event`] struct
+    pub fn as_event(&self) -> &Event {
+        &self.0
     }
 }
 
