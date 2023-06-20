@@ -61,7 +61,7 @@ impl From<crate::event::builder::Error> for Error {
 }
 
 /// Simple struct to hold `width` x `height.
-pub struct ImageDimensions(u64, u64);
+pub struct ImageDimensions(pub u64, pub u64);
 
 /// [`BadgeDefinition`] event builder
 pub struct BadgeDefinitionBuilder {
