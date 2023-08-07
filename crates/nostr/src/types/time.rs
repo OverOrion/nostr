@@ -25,10 +25,10 @@ use core::num;
 use serde::{Deserialize, Serialize};
 
 /// Helper trait for acquiring time in `no_std` environments.
-pub trait TimeSupplier {
-    /// The current time from the specified `TimeSupplier`
+pub trait TimeProvider {
+    /// The current time from the specified `TimeProvider`
     type Now: Clone;
-    /// The starting point for the specified `TimeSupplier`
+    /// The starting point for the specified `TimeProvider`
     type StartingPoint: Clone;
 
     /// Get the current time as the associated `Now` type
@@ -37,7 +37,7 @@ pub trait TimeSupplier {
     fn now(&self) -> Self::StartingPoint;
     /// Get a duration since the StartingPoint.
     fn duration_since_starting_point(&self, now: Self::StartingPoint) -> Duration;
-    /// Get the starting point from the specified `TimeSupplier`
+    /// Get the starting point from the specified `TimeProvider`
     fn starting_point(&self) -> Self::StartingPoint;
     /// Get the elapsed time as `Duration` starting from `since` to `now`
     fn elapsed_instant_since(&self, now: Self::Now, since: Self::Now) -> Duration;
@@ -52,7 +52,7 @@ pub trait TimeSupplier {
 #[cfg(target_arch = "wasm32")]
 use instant::Instant as InstantWasm32;
 #[cfg(target_arch = "wasm32")]
-impl TimeSupplier for InstantWasm32 {
+impl TimeProvider for InstantWasm32 {
     type Now = InstantWasm32;
     type StartingPoint = std::time::SystemTime;
 
@@ -93,7 +93,7 @@ impl TimeSupplier for InstantWasm32 {
 #[cfg(all(not(target_arch = "wasm32"), feature = "std"))]
 use std::time::Instant;
 #[cfg(all(not(target_arch = "wasm32"), feature = "std"))]
-impl TimeSupplier for Instant {
+impl TimeProvider for Instant {
     type Now = Instant;
     type StartingPoint = std::time::SystemTime;
 
@@ -146,17 +146,17 @@ impl Timestamp {
         Self(ts as i64)
     }
 
-    /// Get UNIX timestamp from the specified `TimeSupplier`
+    /// Get UNIX timestamp from the specified `TimeProvider`
     #[cfg(not(feature = "std"))]
-    pub fn now_nostd<T>(time_supplier: &T) -> Self
+    pub fn now_nostd<T>(time_provider: &T) -> Self
     where
-        T: TimeSupplier,
+        T: TimeProvider,
     {
-        let now = time_supplier.now();
-        let starting_point = time_supplier.starting_point();
-        let duration = time_supplier.elapsed_since(now, starting_point);
+        let now = time_provider.now();
+        let starting_point = time_provider.starting_point();
+        let duration = time_provider.elapsed_since(now, starting_point);
 
-        time_supplier.to_timestamp(duration)
+        time_provider.to_timestamp(duration)
     }
 
     /// Get timestamp as [`u64`]

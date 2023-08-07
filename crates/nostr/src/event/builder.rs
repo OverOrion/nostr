@@ -30,7 +30,7 @@ use crate::nips::nip04;
 use crate::nips::nip13;
 #[cfg(feature = "nip46")]
 use crate::nips::nip46::Message as NostrConnectMessage;
-use crate::types::time::TimeSupplier;
+use crate::types::time::TimeProvider;
 use crate::types::{ChannelId, Contact, Metadata, Timestamp};
 
 /// [`EventBuilder`] error
@@ -177,34 +177,34 @@ impl EventBuilder {
         let now = Instant::now();
 
         use secp256k1::SECP256K1;
-        self.to_unsigned_pow_event_with_time_supplier_with_secp::<Instant, _>(
+        self.to_unsigned_pow_event_with_time_provider_with_secp::<Instant, _>(
             pubkey, difficulty, &now, SECP256K1,
         )
     }
 
     /// Build POW [`Event`] using the given time supplier
-    pub fn to_pow_event_with_time_supplier_with_secp<T, C: Signing>(
+    pub fn to_pow_event_with_time_provider_with_secp<T, C: Signing>(
         self,
         keys: &Keys,
         difficulty: u8,
-        time_supplier: &impl TimeSupplier,
+        time_provider: &impl TimeProvider,
         secp: &Secp256k1<C>,
     ) -> Result<Event, Error>
     where
-        T: TimeSupplier,
+        T: TimeProvider,
     {
-        self.into_pow_event_internal(keys, difficulty, time_supplier, secp)
+        self.into_pow_event_internal(keys, difficulty, time_provider, secp)
     }
 
     fn into_pow_event_internal<T, C: Signing>(
         self,
         keys: &Keys,
         difficulty: u8,
-        time_supplier: &T,
+        time_provider: &T,
         _secp: &Secp256k1<C>,
     ) -> Result<Event, Error>
     where
-        T: TimeSupplier,
+        T: TimeProvider,
     {
         #[cfg(feature = "std")]
         use std::cmp;
@@ -217,27 +217,27 @@ impl EventBuilder {
 
         let pubkey = keys.public_key();
 
-        let now = time_supplier.now();
+        let now = time_provider.now();
 
         loop {
             nonce += 1;
 
             tags.push(Tag::POW { nonce, difficulty });
 
-            let new_now = time_supplier.now();
-            let created_at = time_supplier.duration_since_starting_point(now.clone());
-            let created_at = time_supplier.to_timestamp(created_at);
+            let new_now = time_provider.now();
+            let created_at = time_provider.duration_since_starting_point(now.clone());
+            let created_at = time_provider.to_timestamp(created_at);
             let id = EventId::new(&pubkey, created_at, &self.kind, &tags, &self.content);
 
             if nip13::get_leading_zero_bits(id.inner()) >= difficulty {
                 log::debug!(
                     "{} iterations in {} ms. Avg rate {} hashes/second",
                     nonce,
-                    time_supplier
+                    time_provider
                         .elapsed_since(now.clone(), new_now.clone())
                         .as_millis(),
                     nonce * 1000
-                        / cmp::max(1, time_supplier.elapsed_since(now, new_now).as_millis())
+                        / cmp::max(1, time_provider.elapsed_since(now, new_now).as_millis())
                 );
 
                 let message = Message::from_slice(id.as_bytes())?;
@@ -255,28 +255,28 @@ impl EventBuilder {
         }
     }
     /// Build POW [`Event`] using the given time supplier
-    pub fn to_unsigned_pow_event_with_time_supplier_with_secp<T, C: Signing>(
+    pub fn to_unsigned_pow_event_with_time_provider_with_secp<T, C: Signing>(
         self,
         pubkey: XOnlyPublicKey,
         difficulty: u8,
-        time_supplier: &impl TimeSupplier,
+        time_provider: &impl TimeProvider,
         secp: &Secp256k1<C>,
     ) -> UnsignedEvent
     where
-        T: TimeSupplier,
+        T: TimeProvider,
     {
-        self.into_pow_unsigned_event_internal(pubkey, difficulty, time_supplier, secp)
+        self.into_pow_unsigned_event_internal(pubkey, difficulty, time_provider, secp)
     }
 
     fn into_pow_unsigned_event_internal<T, C: Signing>(
         self,
         pubkey: XOnlyPublicKey,
         difficulty: u8,
-        time_supplier: &T,
+        time_provider: &T,
         _secp: &Secp256k1<C>,
     ) -> UnsignedEvent
     where
-        T: TimeSupplier,
+        T: TimeProvider,
     {
         #[cfg(feature = "std")]
         use std::cmp;
@@ -287,27 +287,27 @@ impl EventBuilder {
         let mut nonce: u128 = 0;
         let mut tags: Vec<Tag> = self.tags.clone();
 
-        let now = time_supplier.now();
+        let now = time_provider.now();
 
         loop {
             nonce += 1;
 
             tags.push(Tag::POW { nonce, difficulty });
 
-            let new_now = time_supplier.now();
-            let created_at = time_supplier.duration_since_starting_point(now.clone());
-            let created_at = time_supplier.to_timestamp(created_at);
+            let new_now = time_provider.now();
+            let created_at = time_provider.duration_since_starting_point(now.clone());
+            let created_at = time_provider.to_timestamp(created_at);
             let id = EventId::new(&pubkey, created_at, &self.kind, &tags, &self.content);
 
             if nip13::get_leading_zero_bits(id.inner()) >= difficulty {
                 log::debug!(
                     "{} iterations in {} ms. Avg rate {} hashes/second",
                     nonce,
-                    time_supplier
+                    time_provider
                         .elapsed_since(now.clone(), new_now.clone())
                         .as_millis(),
                     nonce * 1000
-                        / cmp::max(1, time_supplier.elapsed_since(now, new_now).as_millis())
+                        / cmp::max(1, time_provider.elapsed_since(now, new_now).as_millis())
                 );
 
                 return self.to_unsigned_event_with_timestamp(pubkey, created_at);
